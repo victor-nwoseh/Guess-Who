@@ -71,22 +71,26 @@ export const useGameStore = create<GameStore>((set, get) => ({
   addQuestion: (question) => set((state) => {
     if (!state.gameState) return state;
     if (state.gameState.questions.some(q => q.id === question.id)) return state;
+    const questions = [...state.gameState.questions, question];
+    sessionStorage.setItem('gw_questions', JSON.stringify(questions));
     return {
       gameState: {
         ...state.gameState,
-        questions: [...state.gameState.questions, question],
+        questions,
       },
     };
   }),
 
   updateQuestion: (question) => set((state) => {
     if (!state.gameState) return state;
+    const questions = state.gameState.questions.map(q =>
+      q.id === question.id ? question : q
+    );
+    sessionStorage.setItem('gw_questions', JSON.stringify(questions));
     return {
       gameState: {
         ...state.gameState,
-        questions: state.gameState.questions.map(q =>
-          q.id === question.id ? question : q
-        ),
+        questions,
       },
     };
   }),
@@ -121,6 +125,11 @@ export function subscribeToServerEvents(): () => void {
   };
 
   const onRoomJoined = ({ gameState }: { gameState: GameState }) => {
+    // Restore questions from sessionStorage if server state has fewer
+    const savedQuestions = JSON.parse(sessionStorage.getItem('gw_questions') || '[]');
+    if (savedQuestions.length > gameState.questions.length) {
+      gameState = { ...gameState, questions: savedQuestions };
+    }
     set({ gameState, roomCode: gameState.roomCode, myPlayerId: socket.id ?? null });
     storeSession(gameState.roomCode, store().displayName);
   };
@@ -132,6 +141,7 @@ export function subscribeToServerEvents(): () => void {
   const onGameConfigured = ({ gameState }: { gameState: GameState }) => {
     sessionStorage.removeItem('gw_eliminatedIds');
     sessionStorage.removeItem('gw_selectedCharId');
+    sessionStorage.removeItem('gw_questions');
     set({ gameState, myEliminatedIds: [] });
   };
 
@@ -205,6 +215,7 @@ export function subscribeToServerEvents(): () => void {
   const onRematchStarted = ({ gameState }: { gameState: GameState }) => {
     sessionStorage.removeItem('gw_eliminatedIds');
     sessionStorage.removeItem('gw_selectedCharId');
+    sessionStorage.removeItem('gw_questions');
     set({ gameState, myEliminatedIds: [] });
   };
 
