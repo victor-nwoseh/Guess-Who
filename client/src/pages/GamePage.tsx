@@ -27,10 +27,28 @@ export default function GamePage() {
     characterName: string;
     correct: boolean;
   } | null>(null);
+  const [answerBubble, setAnswerBubble] = useState<{
+    question: string;
+    answer: 'yes' | 'no';
+  } | null>(null);
 
   const phase = gameState?.phase;
   const characters = gameState?.characters ?? [];
   const me = gameState?.players.find(p => p.id === myPlayerId);
+
+  // Show answer bubble when opponent answers my question
+  useEffect(() => {
+    const socket = getSocket();
+    const handleAnswered = (data: { question: { id: string; askerId: string; text: string; answer: 'yes' | 'no'; isSnipe?: boolean } }) => {
+      const pid = useGameStore.getState().myPlayerId;
+      if (data.question.askerId === pid && !data.question.isSnipe) {
+        setAnswerBubble({ question: data.question.text, answer: data.question.answer });
+        setTimeout(() => setAnswerBubble(null), 4000);
+      }
+    };
+    socket.on('question-answered', handleAnswered);
+    return () => { socket.off('question-answered', handleAnswered); };
+  }, []);
 
   // Listen for snipe results
   useEffect(() => {
@@ -317,6 +335,30 @@ export default function GamePage() {
         eliminatedIds={myEliminatedIds}
         onConfirm={handleSnipe}
       />
+
+      {/* Answer Bubble */}
+      <AnimatePresence>
+        {answerBubble && (
+          <motion.div
+            initial={{ opacity: 0, y: -40 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+            className="fixed top-6 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-2rem)] max-w-sm"
+            onClick={() => setAnswerBubble(null)}
+          >
+            <div className="bg-primary-light border border-white/10 rounded-2xl px-4 py-3 shadow-lg">
+              <p className="text-neutral-400 text-xs mb-1">You asked:</p>
+              <p className="text-white text-sm font-medium">{answerBubble.question}</p>
+              <p className={`text-lg font-bold mt-1 ${
+                answerBubble.answer === 'yes' ? 'text-green-400' : 'text-red-400'
+              }`}>
+                {answerBubble.answer === 'yes' ? 'Yes' : 'No'}
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Snipe Result Overlay */}
       <AnimatePresence>
