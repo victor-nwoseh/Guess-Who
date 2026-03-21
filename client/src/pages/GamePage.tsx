@@ -5,9 +5,10 @@ import ScreenLayout from '../components/ui/ScreenLayout';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
+import Input from '../components/ui/Input';
 import { useGameStore, subscribeToServerEvents } from '../stores/gameStore';
 import { getSocket, connect, getStoredSession } from '../services/socket';
-import { GamePhase } from '@guess-who/shared';
+import { GamePhase, GameMode } from '@guess-who/shared';
 
 export default function GamePage() {
   const navigate = useNavigate();
@@ -15,6 +16,8 @@ export default function GamePage() {
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState(false);
+  const [questionText, setQuestionText] = useState('');
+  const [showHistory, setShowHistory] = useState(false);
 
   const phase = gameState?.phase;
   const characters = gameState?.characters ?? [];
@@ -240,13 +243,174 @@ export default function GamePage() {
           })}
         </div>
 
-        {/* Bottom Action Area — built in Steps 3.6/3.7 */}
-        <div className="shrink-0 pt-2 border-t border-white/10">
-          <p className="text-neutral-500 text-sm text-center py-2">
-            {isMyTurn ? 'Your turn — action area coming soon' : "Waiting for opponent..."}
-          </p>
+        {/* Bottom Action Area */}
+        <div className="shrink-0 pt-2 border-t border-white/10 flex flex-col gap-2">
+          {gameState.mode === GameMode.REMOTE ? (
+            <RemoteActions
+              isMyTurn={isMyTurn}
+              questions={gameState.questions}
+              questionText={questionText}
+              setQuestionText={setQuestionText}
+              showHistory={showHistory}
+              setShowHistory={setShowHistory}
+              myPlayerId={myPlayerId!}
+              opponentName={opponent?.displayName ?? 'Opponent'}
+            />
+          ) : (
+            /* In-Person mode — built in Step 3.7 */
+            <p className="text-neutral-500 text-sm text-center py-2">
+              {isMyTurn ? 'Your turn — action area coming soon' : "Waiting for opponent..."}
+            </p>
+          )}
         </div>
       </div>
     </ScreenLayout>
+  );
+}
+
+// --- Remote Mode Action Area ---
+
+import type { Question } from '@guess-who/shared';
+
+interface RemoteActionsProps {
+  isMyTurn: boolean;
+  questions: Question[];
+  questionText: string;
+  setQuestionText: (text: string) => void;
+  showHistory: boolean;
+  setShowHistory: (show: boolean) => void;
+  myPlayerId: string;
+  opponentName: string;
+}
+
+function RemoteActions({
+  isMyTurn,
+  questions,
+  questionText,
+  setQuestionText,
+  showHistory,
+  setShowHistory,
+  myPlayerId,
+  opponentName,
+}: RemoteActionsProps) {
+  const socket = getSocket();
+
+  // Find the latest unanswered question asked by opponent (for answering)
+  const pendingQuestion = questions.find(
+    q => q.askerId !== myPlayerId && q.answer === null && !q.isSnipe
+  );
+
+  // Check if I asked a question that hasn't been answered yet
+  const myPendingQuestion = questions.find(
+    q => q.askerId === myPlayerId && q.answer === null && !q.isSnipe
+  );
+
+  function handleAskQuestion() {
+    const text = questionText.trim();
+    if (!text) return;
+    socket.emit('ask-question', { text });
+    setQuestionText('');
+  }
+
+  function handleAnswer(answer: 'yes' | 'no') {
+    if (!pendingQuestion) return;
+    socket.emit('answer-question', { questionId: pendingQuestion.id, answer });
+  }
+
+  // Answered questions for history
+  const answeredQuestions = questions.filter(q => q.answer !== null && !q.isSnipe);
+
+  return (
+    <>
+      {/* Question History (collapsible) */}
+      {answeredQuestions.length > 0 && (
+        <div>
+          <button
+            onClick={() => setShowHistory(!showHistory)}
+            className="text-neutral-400 text-xs flex items-center gap-1 cursor-pointer hover:text-neutral-300 transition-colors"
+          >
+            <span className={`transition-transform ${showHistory ? 'rotate-90' : ''}`}>&#9654;</span>
+            Question history ({answeredQuestions.length})
+          </button>
+          <AnimatePresence>
+            {showHistory && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden"
+              >
+                <div className="flex flex-col gap-1.5 mt-2 max-h-32 overflow-y-auto">
+                  {answeredQuestions.map(q => (
+                    <div
+                      key={q.id}
+                      className={`rounded-lg px-3 py-1.5 text-xs max-w-[85%] ${
+                        q.askerId === myPlayerId
+                          ? 'bg-accent/10 text-neutral-200 self-end'
+                          : 'bg-white/5 text-neutral-300 self-start'
+                      }`}
+                    >
+                      <p>{q.text}</p>
+                      <span className={`font-medium ${q.answer === 'yes' ? 'text-green-400' : 'text-red-400'}`}>
+                        {q.answer === 'yes' ? 'Yes' : 'No'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
+
+      {/* Action Area */}
+      {isMyTurn ? (
+        myPendingQuestion ? (
+          /* Asked a question, waiting for opponent to answer */
+          <div className="bg-white/5 rounded-xl px-4 py-3">
+            <p className="text-neutral-400 text-xs mb-1">You asked:</p>
+            <p className="text-white text-sm">{myPendingQuestion.text}</p>
+            <p className="text-neutral-500 text-xs mt-1">Waiting for {opponentName} to answer...</p>
+          </div>
+        ) : (
+          /* Your turn — ask a question */
+          <div className="flex gap-2">
+            <Input
+              id="question-input"
+              placeholder="Ask a yes/no question..."
+              value={questionText}
+              onChange={(e) => setQuestionText(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleAskQuestion(); }}
+              className="flex-1"
+            />
+            <Button onClick={handleAskQuestion} disabled={!questionText.trim()}>
+              Send
+            </Button>
+          </div>
+        )
+      ) : pendingQuestion ? (
+        /* Opponent asked a question — show it and answer */
+        <div className="flex flex-col gap-2">
+          <div className="bg-white/5 rounded-xl px-4 py-3">
+            <p className="text-neutral-400 text-xs mb-1">{opponentName} asks:</p>
+            <p className="text-white text-sm">{pendingQuestion.text}</p>
+          </div>
+          <div className="flex gap-2">
+            <Button onClick={() => handleAnswer('yes')} className="flex-1">
+              Yes
+            </Button>
+            <Button onClick={() => handleAnswer('no')} variant="secondary" className="flex-1">
+              No
+            </Button>
+          </div>
+        </div>
+      ) : (
+        /* Waiting for opponent to ask */
+        <p className="text-neutral-400 text-sm text-center py-2">
+          Waiting for {opponentName} to ask a question...
+        </p>
+      )}
+    </>
   );
 }
