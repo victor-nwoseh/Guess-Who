@@ -6,6 +6,7 @@ import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import Input from '../components/ui/Input';
+import SnipeModal from '../components/game/SnipeModal';
 import { useGameStore, subscribeToServerEvents } from '../stores/gameStore';
 import { getSocket, connect, getStoredSession } from '../services/socket';
 import { GamePhase, GameMode } from '@guess-who/shared';
@@ -20,10 +21,42 @@ export default function GamePage() {
   const [confirmed, setConfirmed] = useState(false);
   const [questionText, setQuestionText] = useState('');
   const [showHistory, setShowHistory] = useState(false);
+  const [showSnipeModal, setShowSnipeModal] = useState(false);
+  const [snipeResult, setSnipeResult] = useState<{
+    sniperName: string;
+    characterName: string;
+    correct: boolean;
+  } | null>(null);
 
   const phase = gameState?.phase;
   const characters = gameState?.characters ?? [];
   const me = gameState?.players.find(p => p.id === myPlayerId);
+
+  // Listen for snipe results
+  useEffect(() => {
+    const socket = getSocket();
+    const handleSnipeResult = (data: {
+      sniperId: string;
+      characterName: string;
+      correct: boolean;
+    }) => {
+      const gs = useGameStore.getState().gameState;
+      const sniper = gs?.players.find(p => p.id === data.sniperId);
+      setSnipeResult({
+        sniperName: sniper?.displayName ?? 'Unknown',
+        characterName: data.characterName,
+        correct: data.correct,
+      });
+      setShowSnipeModal(false);
+
+      // Auto-dismiss after 3 seconds if wrong guess
+      if (!data.correct) {
+        setTimeout(() => setSnipeResult(null), 3000);
+      }
+    };
+    socket.on('snipe-result', handleSnipeResult);
+    return () => { socket.off('snipe-result', handleSnipeResult); };
+  }, []);
 
   // Navigate to results when game is over
   useEffect(() => {
@@ -151,6 +184,11 @@ export default function GamePage() {
     }
   }
 
+  function handleSnipe(characterId: string) {
+    const socket = getSocket();
+    socket.emit('snipe', { characterId });
+  }
+
   return (
     <ScreenLayout>
       <div className="flex flex-col gap-2 flex-1 min-h-0">
@@ -258,18 +296,59 @@ export default function GamePage() {
               setShowHistory={setShowHistory}
               myPlayerId={myPlayerId!}
               opponentName={opponent?.displayName ?? 'Opponent'}
-              onSnipe={() => { /* Step 3.8 — Snipe Modal */ }}
+              onSnipe={() => setShowSnipeModal(true)}
             />
           ) : (
             /* In-Person mode */
             <InPersonActions
               isMyTurn={isMyTurn}
               opponentName={opponent?.displayName ?? 'Opponent'}
-              onSnipe={() => { /* Step 3.8 — Snipe Modal */ }}
+              onSnipe={() => setShowSnipeModal(true)}
             />
           )}
         </div>
       </div>
+
+      {/* Snipe Modal */}
+      <SnipeModal
+        open={showSnipeModal}
+        onClose={() => setShowSnipeModal(false)}
+        characters={characters}
+        eliminatedIds={myEliminatedIds}
+        onConfirm={handleSnipe}
+      />
+
+      {/* Snipe Result Overlay */}
+      <AnimatePresence>
+        {snipeResult && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
+            onClick={() => !snipeResult.correct && setSnipeResult(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              className="bg-primary-light rounded-2xl p-6 mx-4 text-center max-w-sm"
+            >
+              <p className="text-lg font-bold text-white mb-2">
+                {snipeResult.sniperName} guessed {snipeResult.characterName}
+              </p>
+              <p className={`text-2xl font-bold font-heading ${
+                snipeResult.correct ? 'text-green-400' : 'text-red-400'
+              }`}>
+                {snipeResult.correct ? 'Correct!' : 'Wrong!'}
+              </p>
+              {!snipeResult.correct && (
+                <p className="text-neutral-400 text-sm mt-2">Tap to dismiss</p>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </ScreenLayout>
   );
 }
