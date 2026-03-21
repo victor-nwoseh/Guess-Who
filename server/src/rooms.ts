@@ -89,5 +89,10 @@ export function updatePlayerIdInRoom(roomCode: string, oldId: string, newId: str
   if (room.currentTurnPlayerId === oldId) {
     room.currentTurnPlayerId = newId;
   }
+  for (const q of room.questions) {
+    if (q.askerId === oldId) {
+      q.askerId = newId;
+    }
+  }
   return true;
 }
