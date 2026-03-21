@@ -7,6 +7,8 @@ import Badge from '../components/ui/Badge';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import Input from '../components/ui/Input';
 import SnipeModal from '../components/game/SnipeModal';
+import CharacterCard from '../components/game/CharacterCard';
+import Avatar from '../components/game/Avatar';
 import { useGameStore, subscribeToServerEvents } from '../stores/gameStore';
 import { getSocket, connect, getStoredSession } from '../services/socket';
 import { GamePhase, GameMode } from '@guess-who/shared';
@@ -143,33 +145,12 @@ export default function GamePage() {
             <>
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 overflow-y-auto flex-1">
                 {characters.map(character => (
-                  <motion.button
+                  <CharacterCard
                     key={character.id}
-                    onClick={() => setSelectedId(character.id)}
-                    whileTap={{ scale: 0.95 }}
-                    className={`flex flex-col items-center gap-1 p-2 rounded-xl cursor-pointer transition-all
-                      ${selectedId === character.id
-                        ? 'bg-accent/20 border-2 border-accent ring-2 ring-accent/50'
-                        : 'bg-white/5 border-2 border-transparent hover:bg-white/10'
-                      }`}
-                  >
-                    {character.imageUrl ? (
-                      <img
-                        src={character.imageUrl}
-                        alt={character.name}
-                        className="w-16 h-16 rounded-lg object-cover"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div className={`w-16 h-16 rounded-lg flex items-center justify-center text-2xl
-                        ${character.gender === 'female' ? 'bg-pink-500/20' : 'bg-blue-500/20'}`}>
-                        {character.gender === 'female' ? '♀' : '♂'}
-                      </div>
-                    )}
-                    <span className="text-white text-xs text-center leading-tight">
-                      {character.name}
-                    </span>
-                  </motion.button>
+                    character={character}
+                    state={selectedId === character.id ? 'selected' : 'normal'}
+                    onTap={() => setSelectedId(character.id)}
+                  />
                 ))}
               </div>
 
@@ -232,12 +213,9 @@ export default function GamePage() {
             <div className="flex items-center gap-1.5">
               <span className="text-neutral-500 text-xs">Your character:</span>
               {myCharacter.imageUrl ? (
-                <img src={myCharacter.imageUrl} alt="" className="w-5 h-5 rounded" />
+                <img src={myCharacter.imageUrl} alt="" className="w-5 h-5 rounded object-cover" />
               ) : (
-                <div className={`w-5 h-5 rounded flex items-center justify-center text-xs
-                  ${myCharacter.gender === 'female' ? 'bg-pink-500/20' : 'bg-blue-500/20'}`}>
-                  {myCharacter.gender === 'female' ? '♀' : '♂'}
-                </div>
+                <Avatar name="" gender={myCharacter.gender} size={20} />
               )}
               <span className="text-neutral-400 text-xs font-medium">{myCharacter.name}</span>
             </div>
@@ -246,60 +224,15 @@ export default function GamePage() {
 
         {/* Character Grid */}
         <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 overflow-y-auto flex-1 min-h-0 content-start">
-          {characters.map(character => {
-            const isEliminated = myEliminatedIds.includes(character.id);
-            return (
-              <motion.button
-                key={character.id}
-                onClick={() => handleToggleEliminate(character.id)}
-                whileTap={{ scale: 0.95 }}
-                className="relative flex flex-col items-center gap-1 p-2 rounded-xl cursor-pointer transition-colors bg-white/5"
-              >
-                <AnimatePresence mode="wait">
-                  {isEliminated ? (
-                    <motion.div
-                      key="eliminated"
-                      initial={{ rotateY: 0 }}
-                      animate={{ rotateY: 180 }}
-                      exit={{ rotateY: 0 }}
-                      transition={{ duration: 0.3 }}
-                      className="w-16 h-16 rounded-lg bg-white/5 flex items-center justify-center"
-                      style={{ backfaceVisibility: 'hidden' }}
-                    >
-                      <span className="text-neutral-600 text-2xl" style={{ transform: 'rotateY(180deg)' }}>✕</span>
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key="active"
-                      initial={{ rotateY: 180 }}
-                      animate={{ rotateY: 0 }}
-                      exit={{ rotateY: 180 }}
-                      transition={{ duration: 0.3 }}
-                      style={{ backfaceVisibility: 'hidden' }}
-                    >
-                      {character.imageUrl ? (
-                        <img
-                          src={character.imageUrl}
-                          alt={character.name}
-                          className="w-16 h-16 rounded-lg object-cover"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className={`w-16 h-16 rounded-lg flex items-center justify-center text-2xl
-                          ${character.gender === 'female' ? 'bg-pink-500/20' : 'bg-blue-500/20'}`}>
-                          {character.gender === 'female' ? '♀' : '♂'}
-                        </div>
-                      )}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-                <span className={`text-xs text-center leading-tight transition-colors
-                  ${isEliminated ? 'text-neutral-600 line-through' : 'text-white'}`}>
-                  {character.name}
-                </span>
-              </motion.button>
-            );
-          })}
+          {characters.map(character => (
+            <CharacterCard
+              key={character.id}
+              character={character}
+              state={myEliminatedIds.includes(character.id) ? 'eliminated' : 'normal'}
+              onTap={() => handleToggleEliminate(character.id)}
+              onLongPress={() => setShowSnipeModal(true)}
+            />
+          ))}
         </div>
 
         {/* Bottom Action Area */}

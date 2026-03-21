@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
+import CharacterCard from './CharacterCard';
 import type { Character } from '@guess-who/shared';
 
 interface SnipeModalProps {
@@ -51,21 +52,7 @@ export default function SnipeModal({
       {confirming && selectedCharacter ? (
         <div className="flex flex-col items-center gap-4">
           <h2 className="text-lg font-bold text-white font-heading">Confirm Guess</h2>
-          <div className="flex flex-col items-center gap-2">
-            {selectedCharacter.imageUrl ? (
-              <img
-                src={selectedCharacter.imageUrl}
-                alt={selectedCharacter.name}
-                className="w-20 h-20 rounded-xl object-cover"
-              />
-            ) : (
-              <div className={`w-20 h-20 rounded-xl flex items-center justify-center text-3xl
-                ${selectedCharacter.gender === 'female' ? 'bg-pink-500/20' : 'bg-blue-500/20'}`}>
-                {selectedCharacter.gender === 'female' ? '♀' : '♂'}
-              </div>
-            )}
-            <span className="text-white font-medium">{selectedCharacter.name}</span>
-          </div>
+          <CharacterCard character={selectedCharacter} state="guessing" />
           <p className="text-neutral-300 text-sm text-center">
             Are you sure you want to guess <strong>{selectedCharacter.name}</strong>?
           </p>
@@ -93,37 +80,16 @@ export default function SnipeModal({
             Tap a character to guess. Non-eliminated characters are highlighted.
           </p>
           <div className="grid grid-cols-3 gap-2 max-h-[50vh] overflow-y-auto">
-            {characters.map(character => {
-              const isEliminated = eliminatedIds.includes(character.id);
-              return (
-                <button
-                  key={character.id}
-                  onClick={() => handleSelect(character.id)}
-                  className={`flex flex-col items-center gap-1 p-2 rounded-xl cursor-pointer transition-all
-                    ${isEliminated
-                      ? 'bg-white/5 opacity-40'
-                      : 'bg-white/10 hover:bg-accent/20 hover:ring-1 hover:ring-accent/50'
-                    }`}
-                >
-                  {character.imageUrl ? (
-                    <img
-                      src={character.imageUrl}
-                      alt={character.name}
-                      className="w-14 h-14 rounded-lg object-cover"
-                    />
-                  ) : (
-                    <div className={`w-14 h-14 rounded-lg flex items-center justify-center text-xl
-                      ${character.gender === 'female' ? 'bg-pink-500/20' : 'bg-blue-500/20'}`}>
-                      {character.gender === 'female' ? '♀' : '♂'}
-                    </div>
-                  )}
-                  <span className={`text-xs text-center leading-tight
-                    ${isEliminated ? 'text-neutral-600 line-through' : 'text-white'}`}>
-                    {character.name}
-                  </span>
-                </button>
-              );
-            })}
+            {characters.map(character => (
+              <div key={character.id} className={eliminatedIds.includes(character.id) ? 'opacity-40' : ''}>
+                <CharacterCard
+                  character={character}
+                  state={eliminatedIds.includes(character.id) ? 'eliminated' : 'normal'}
+                  size="sm"
+                  onTap={() => handleSelect(character.id)}
+                />
+              </div>
+            ))}
           </div>
         </div>
       )}
