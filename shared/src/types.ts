@@ -75,6 +75,7 @@ export interface GameState {
 export interface ClientEvents {
   'create-room': (data: { displayName: string }) => void;
   'join-room': (data: { roomCode: string; displayName: string }) => void;
+  'reconnect-session': (data: { oldSocketId: string; roomCode: string }) => void;
   'join-matchmaking': (data: { displayName: string }) => void;
   'configure-game': (data: {
     mode: GameMode;

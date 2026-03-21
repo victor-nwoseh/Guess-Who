@@ -5,8 +5,8 @@ import ScreenLayout from '../components/ui/ScreenLayout';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
-import { useGameStore } from '../stores/gameStore';
-import { getSocket } from '../services/socket';
+import { useGameStore, subscribeToServerEvents } from '../stores/gameStore';
+import { getSocket, connect, getStoredSession } from '../services/socket';
 import { GamePhase } from '@guess-who/shared';
 
 export default function GamePage() {
@@ -27,10 +27,25 @@ export default function GamePage() {
     }
   }, [phase, gameState?.roomCode, navigate]);
 
-  // If no game state, redirect home
+  // If no game state, attempt reconnection before redirecting home
   useEffect(() => {
     if (!gameState) {
-      navigate('/');
+      const session = getStoredSession();
+      if (session.socketId && session.roomCode) {
+        // Attempt reconnection — socket.ts handles emitting reconnect-session on connect
+        const socket = connect();
+        subscribeToServerEvents();
+
+        // Give reconnection a chance, then redirect if still no state
+        const timeout = setTimeout(() => {
+          if (!useGameStore.getState().gameState) {
+            navigate('/');
+          }
+        }, 3000);
+        return () => clearTimeout(timeout);
+      } else {
+        navigate('/');
+      }
     }
   }, [gameState, navigate]);
 
@@ -134,25 +149,35 @@ export default function GamePage() {
     <ScreenLayout>
       <div className="flex flex-col gap-2 flex-1 min-h-0">
         {/* Top Bar */}
-        <div className="flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-2">
-            <span className="text-white font-medium text-sm">{opponent?.displayName}</span>
-            <Badge variant="default">{opponent?.wins ?? 0} wins</Badge>
+        <div className="flex flex-col gap-1.5 shrink-0">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5">
+                <span className="text-white font-medium text-sm">{me?.displayName}</span>
+                <Badge variant="accent">{me?.wins ?? 0}</Badge>
+              </div>
+              <span className="text-neutral-500 text-xs">vs</span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-neutral-300 font-medium text-sm">{opponent?.displayName}</span>
+                <Badge variant="default">{opponent?.wins ?? 0}</Badge>
+              </div>
+            </div>
+            <Badge variant={isMyTurn ? 'accent' : 'default'}>
+              {isMyTurn ? 'Your Turn' : "Opponent's Turn"}
+            </Badge>
           </div>
-          <Badge variant={isMyTurn ? 'accent' : 'default'}>
-            {isMyTurn ? 'Your Turn' : "Opponent's Turn"}
-          </Badge>
           {myCharacter && (
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
+              <span className="text-neutral-500 text-xs">Your character:</span>
               {myCharacter.imageUrl ? (
-                <img src={myCharacter.imageUrl} alt="" className="w-6 h-6 rounded" />
+                <img src={myCharacter.imageUrl} alt="" className="w-5 h-5 rounded" />
               ) : (
-                <div className={`w-6 h-6 rounded flex items-center justify-center text-xs
+                <div className={`w-5 h-5 rounded flex items-center justify-center text-xs
                   ${myCharacter.gender === 'female' ? 'bg-pink-500/20' : 'bg-blue-500/20'}`}>
                   {myCharacter.gender === 'female' ? '♀' : '♂'}
                 </div>
               )}
-              <span className="text-neutral-400 text-xs">{myCharacter.name}</span>
+              <span className="text-neutral-400 text-xs font-medium">{myCharacter.name}</span>
             </div>
           )}
         </div>
