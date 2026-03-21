@@ -32,7 +32,7 @@ const initialState = {
   roomCode: null as string | null,
   gameState: null as GameState | null,
   myPlayerId: null as string | null,
-  myEliminatedIds: [] as string[],
+  myEliminatedIds: JSON.parse(sessionStorage.getItem('gw_eliminatedIds') || '[]') as string[],
   displayName: localStorage.getItem('gw_displayName') || '',
 };
 
@@ -57,12 +57,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   eliminateCharacter: (characterId) => set((state) => {
     if (state.myEliminatedIds.includes(characterId)) return state;
-    return { myEliminatedIds: [...state.myEliminatedIds, characterId] };
+    const updated = [...state.myEliminatedIds, characterId];
+    sessionStorage.setItem('gw_eliminatedIds', JSON.stringify(updated));
+    return { myEliminatedIds: updated };
   }),
 
-  restoreCharacter: (characterId) => set((state) => ({
-    myEliminatedIds: state.myEliminatedIds.filter(id => id !== characterId),
-  })),
+  restoreCharacter: (characterId) => set((state) => {
+    const updated = state.myEliminatedIds.filter(id => id !== characterId);
+    sessionStorage.setItem('gw_eliminatedIds', JSON.stringify(updated));
+    return { myEliminatedIds: updated };
+  }),
 
   addQuestion: (question) => set((state) => {
     if (!state.gameState) return state;
@@ -125,6 +129,7 @@ export function subscribeToServerEvents(): () => void {
   };
 
   const onGameConfigured = ({ gameState }: { gameState: GameState }) => {
+    sessionStorage.removeItem('gw_eliminatedIds');
     set({ gameState, myEliminatedIds: [] });
   };
 
@@ -196,6 +201,7 @@ export function subscribeToServerEvents(): () => void {
   };
 
   const onRematchStarted = ({ gameState }: { gameState: GameState }) => {
+    sessionStorage.removeItem('gw_eliminatedIds');
     set({ gameState, myEliminatedIds: [] });
   };
 
