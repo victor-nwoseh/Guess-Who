@@ -18,7 +18,7 @@ export type GamePhase = (typeof GamePhase)[keyof typeof GamePhase];
 
 export const Category = {
   MUTUAL_FRIENDS: 'mutual_friends',
-  YOUTUBERS: 'youtubers',
+  DIGITAL_CREATORS: 'digital_creators',
   MUSIC_ARTISTS: 'music_artists',
   ACTORS: 'actors',
   ATHLETES: 'athletes',

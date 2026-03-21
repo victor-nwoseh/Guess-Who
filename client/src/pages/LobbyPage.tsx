@@ -12,7 +12,7 @@ import Input from '../components/ui/Input';
 
 const CATEGORY_LABELS: Record<Category, string> = {
   [Category.MUTUAL_FRIENDS]: 'Mutual Friends',
-  [Category.YOUTUBERS]: 'YouTubers',
+  [Category.DIGITAL_CREATORS]: 'Digital Creators & Reality TV',
   [Category.MUSIC_ARTISTS]: 'Music Artists',
   [Category.ACTORS]: 'Actors',
   [Category.ATHLETES]: 'Athletes',
@@ -22,7 +22,7 @@ const CATEGORY_LABELS: Record<Category, string> = {
 
 const CATEGORY_ICONS: Record<Category, string> = {
   [Category.MUTUAL_FRIENDS]: '👥',
-  [Category.YOUTUBERS]: '🎬',
+  [Category.DIGITAL_CREATORS]: '🎬',
   [Category.MUSIC_ARTISTS]: '🎵',
   [Category.ACTORS]: '🎭',
   [Category.ATHLETES]: '⚽',
@@ -51,7 +51,7 @@ export default function LobbyPage() {
   const playerCount = gameState?.players.length ?? 0;
   const isMutualFriends = category === Category.MUTUAL_FRIENDS;
   const canStart = playerCount === 2 && category !== null &&
-    (!isMutualFriends || (friends.length >= 12 && friends.length <= 28));
+    (!isMutualFriends || (friends.length >= 12 && friends.length <= 50));
 
   // If navigated directly via invite link without a session, connect and join
   useEffect(() => {
@@ -105,7 +105,7 @@ export default function LobbyPage() {
 
   function handleAddFriend() {
     const name = friendName.trim();
-    if (!name || friends.length >= 28) return;
+    if (!name || friends.length >= 50) return;
     const newFriend: Character = {
       id: `mf-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       name,
@@ -233,7 +233,7 @@ export default function LobbyPage() {
           {isHost && isMutualFriends && (
             <div>
               <p className="text-white text-sm font-medium mb-2">
-                Add Friends ({friends.length}/28, min 12)
+                Add Friends ({friends.length}/50, min 12)
               </p>
               <div className="flex flex-col gap-2 mb-3">
                 <Input
@@ -249,7 +249,7 @@ export default function LobbyPage() {
                     value={friendGender === 'male' ? 'Male' : 'Female'}
                     onChange={(v) => setFriendGender(v === 'Male' ? 'male' : 'female')}
                   />
-                  <Button onClick={handleAddFriend} disabled={!friendName.trim() || friends.length >= 28} className="ml-auto">
+                  <Button onClick={handleAddFriend} disabled={!friendName.trim() || friends.length >= 50} className="ml-auto">
                     Add
                   </Button>
                 </div>
@@ -288,7 +288,7 @@ export default function LobbyPage() {
                 <input
                   type="range"
                   min={12}
-                  max={28}
+                  max={50}
                   value={boardSize}
                   onChange={(e) => setBoardSize(Number(e.target.value))}
                   className="w-full accent-accent"
