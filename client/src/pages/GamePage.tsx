@@ -261,10 +261,12 @@ export default function GamePage() {
               onSnipe={() => { /* Step 3.8 — Snipe Modal */ }}
             />
           ) : (
-            /* In-Person mode — built in Step 3.7 */
-            <p className="text-neutral-500 text-sm text-center py-2">
-              {isMyTurn ? 'Your turn — action area coming soon' : "Waiting for opponent..."}
-            </p>
+            /* In-Person mode */
+            <InPersonActions
+              isMyTurn={isMyTurn}
+              opponentName={opponent?.displayName ?? 'Opponent'}
+              onSnipe={() => { /* Step 3.8 — Snipe Modal */ }}
+            />
           )}
         </div>
       </div>
@@ -419,5 +421,39 @@ function RemoteActions({
         </p>
       )}
     </>
+  );
+}
+
+// --- In-Person Mode Action Area ---
+
+interface InPersonActionsProps {
+  isMyTurn: boolean;
+  opponentName: string;
+  onSnipe: () => void;
+}
+
+function InPersonActions({ isMyTurn, opponentName, onSnipe }: InPersonActionsProps) {
+  const socket = getSocket();
+
+  function handleEndTurn() {
+    socket.emit('end-turn');
+  }
+
+  return isMyTurn ? (
+    <div className="flex flex-col gap-2">
+      <p className="text-white text-sm text-center font-medium py-1">
+        Ask your question out loud!
+      </p>
+      <Button onClick={handleEndTurn} className="w-full">
+        End Turn
+      </Button>
+      <Button variant="secondary" onClick={onSnipe} className="w-full">
+        Guess (Snipe)
+      </Button>
+    </div>
+  ) : (
+    <p className="text-neutral-400 text-sm text-center py-2">
+      Waiting for {opponentName}...
+    </p>
   );
 }
