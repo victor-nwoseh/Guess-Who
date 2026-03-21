@@ -31,6 +31,13 @@ export function registerHandlers(io: TypedServer, socket: TypedSocket): void {
     });
   });
 
+  socket.on('reconnect-session', ({ oldSocketId, roomCode }) => {
+    const reconnected = handleReconnection(io, socket, oldSocketId);
+    if (!reconnected) {
+      socket.emit('error', { message: 'Session expired or room no longer exists.' });
+    }
+  });
+
   socket.on('join-room', ({ roomCode, displayName }) => {
     const upperCode = roomCode.toUpperCase();
     const gameState = joinRoom(upperCode, socket.id, displayName);

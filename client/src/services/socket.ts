@@ -21,16 +21,15 @@ export function getSocket(): TypedSocket {
     socket.on('connect', () => {
       const oldSocketId = sessionStorage.getItem('gw_socketId');
       const roomCode = sessionStorage.getItem('gw_roomCode');
-      const displayName = sessionStorage.getItem('gw_displayName');
 
       // Store new socket ID
       if (socket?.id) {
         sessionStorage.setItem('gw_socketId', socket.id);
       }
 
-      // If we had a previous session, attempt to re-join
-      if (oldSocketId && roomCode && displayName && socket?.id !== oldSocketId) {
-        socket?.emit('join-room', { roomCode, displayName });
+      // If we had a previous session, attempt to reconnect
+      if (oldSocketId && roomCode && socket?.id !== oldSocketId) {
+        socket?.emit('reconnect-session', { oldSocketId, roomCode });
       }
     });
   }
