@@ -1,28 +1,31 @@
-// --- Enums ---
+// --- Constants (const objects instead of enums for Vite/erasableSyntaxOnly compatibility) ---
 
-export enum GameMode {
-  REMOTE = 'remote',
-  IN_PERSON = 'in_person',
-}
+export const GameMode = {
+  REMOTE: 'remote',
+  IN_PERSON: 'in_person',
+} as const;
+export type GameMode = (typeof GameMode)[keyof typeof GameMode];
 
-export enum GamePhase {
-  LOBBY = 'lobby',
-  SETUP = 'setup',
-  CHARACTER_SELECT = 'character_select',
-  PLAYING = 'playing',
-  ROUND_OVER = 'round_over',
-  GAME_OVER = 'game_over',
-}
+export const GamePhase = {
+  LOBBY: 'lobby',
+  SETUP: 'setup',
+  CHARACTER_SELECT: 'character_select',
+  PLAYING: 'playing',
+  ROUND_OVER: 'round_over',
+  GAME_OVER: 'game_over',
+} as const;
+export type GamePhase = (typeof GamePhase)[keyof typeof GamePhase];
 
-export enum Category {
-  MUTUAL_FRIENDS = 'mutual_friends',
-  YOUTUBERS = 'youtubers',
-  MUSIC_ARTISTS = 'music_artists',
-  ACTORS = 'actors',
-  ATHLETES = 'athletes',
-  BIBLE_CHARACTERS = 'bible_characters',
-  FAMOUS_FACES = 'famous_faces',
-}
+export const Category = {
+  MUTUAL_FRIENDS: 'mutual_friends',
+  YOUTUBERS: 'youtubers',
+  MUSIC_ARTISTS: 'music_artists',
+  ACTORS: 'actors',
+  ATHLETES: 'athletes',
+  BIBLE_CHARACTERS: 'bible_characters',
+  FAMOUS_FACES: 'famous_faces',
+} as const;
+export type Category = (typeof Category)[keyof typeof Category];
 
 // --- Core Interfaces ---
 
