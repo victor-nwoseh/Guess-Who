@@ -125,10 +125,9 @@ export function subscribeToServerEvents(): () => void {
   };
 
   const onRoomJoined = ({ gameState }: { gameState: GameState }) => {
-    // Restore questions from sessionStorage if server state has fewer
-    const savedQuestions = JSON.parse(sessionStorage.getItem('gw_questions') || '[]');
-    if (savedQuestions.length > gameState.questions.length) {
-      gameState = { ...gameState, questions: savedQuestions };
+    // Sync sessionStorage with server's authoritative question state
+    if (gameState.questions.length > 0) {
+      sessionStorage.setItem('gw_questions', JSON.stringify(gameState.questions));
     }
     set({ gameState, roomCode: gameState.roomCode, myPlayerId: socket.id ?? null });
     storeSession(gameState.roomCode, store().displayName);
