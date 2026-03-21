@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import ScreenLayout from '../components/ui/ScreenLayout';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
@@ -11,7 +11,7 @@ import { GamePhase } from '@guess-who/shared';
 
 export default function GamePage() {
   const navigate = useNavigate();
-  const { gameState, myPlayerId } = useGameStore();
+  const { gameState, myPlayerId, myEliminatedIds, eliminateCharacter, restoreCharacter } = useGameStore();
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState(false);
@@ -117,16 +117,24 @@ export default function GamePage() {
     );
   }
 
-  // PLAYING phase — placeholder for Steps 3.5-3.7
+  // PLAYING phase
   const isMyTurn = gameState.currentTurnPlayerId === myPlayerId;
   const opponent = gameState.players.find(p => p.id !== myPlayerId);
-  const myCharacter = characters.find(c => c.id === me?.selectedCharacterId);
+  const myCharacter = characters.find(c => c.id === (me?.selectedCharacterId ?? selectedId));
+
+  function handleToggleEliminate(characterId: string) {
+    if (myEliminatedIds.includes(characterId)) {
+      restoreCharacter(characterId);
+    } else {
+      eliminateCharacter(characterId);
+    }
+  }
 
   return (
     <ScreenLayout>
-      <div className="flex flex-col gap-2 flex-1">
+      <div className="flex flex-col gap-2 flex-1 min-h-0">
         {/* Top Bar */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2">
             <span className="text-white font-medium text-sm">{opponent?.displayName}</span>
             <Badge variant="default">{opponent?.wins ?? 0} wins</Badge>
@@ -149,9 +157,69 @@ export default function GamePage() {
           )}
         </div>
 
-        {/* Game board placeholder - built in Step 3.5 */}
-        <div className="flex-1 flex items-center justify-center">
-          <p className="text-neutral-400">Game board — Step 3.5</p>
+        {/* Character Grid */}
+        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 overflow-y-auto flex-1 min-h-0 content-start">
+          {characters.map(character => {
+            const isEliminated = myEliminatedIds.includes(character.id);
+            return (
+              <motion.button
+                key={character.id}
+                onClick={() => handleToggleEliminate(character.id)}
+                whileTap={{ scale: 0.95 }}
+                className="relative flex flex-col items-center gap-1 p-2 rounded-xl cursor-pointer transition-colors bg-white/5"
+              >
+                <AnimatePresence mode="wait">
+                  {isEliminated ? (
+                    <motion.div
+                      key="eliminated"
+                      initial={{ rotateY: 0 }}
+                      animate={{ rotateY: 180 }}
+                      exit={{ rotateY: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="w-16 h-16 rounded-lg bg-white/5 flex items-center justify-center"
+                      style={{ backfaceVisibility: 'hidden' }}
+                    >
+                      <span className="text-neutral-600 text-2xl" style={{ transform: 'rotateY(180deg)' }}>✕</span>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="active"
+                      initial={{ rotateY: 180 }}
+                      animate={{ rotateY: 0 }}
+                      exit={{ rotateY: 180 }}
+                      transition={{ duration: 0.3 }}
+                      style={{ backfaceVisibility: 'hidden' }}
+                    >
+                      {character.imageUrl ? (
+                        <img
+                          src={character.imageUrl}
+                          alt={character.name}
+                          className="w-16 h-16 rounded-lg object-cover"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className={`w-16 h-16 rounded-lg flex items-center justify-center text-2xl
+                          ${character.gender === 'female' ? 'bg-pink-500/20' : 'bg-blue-500/20'}`}>
+                          {character.gender === 'female' ? '♀' : '♂'}
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+                <span className={`text-xs text-center leading-tight transition-colors
+                  ${isEliminated ? 'text-neutral-600 line-through' : 'text-white'}`}>
+                  {character.name}
+                </span>
+              </motion.button>
+            );
+          })}
+        </div>
+
+        {/* Bottom Action Area — built in Steps 3.6/3.7 */}
+        <div className="shrink-0 pt-2 border-t border-white/10">
+          <p className="text-neutral-500 text-sm text-center py-2">
+            {isMyTurn ? 'Your turn — action area coming soon' : "Waiting for opponent..."}
+          </p>
         </div>
       </div>
     </ScreenLayout>
