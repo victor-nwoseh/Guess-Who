@@ -7,6 +7,8 @@ import Toggle from '../components/ui/Toggle';
 import { useGameStore, subscribeToServerEvents } from '../stores/gameStore';
 import { connect, getSocket, storeSession } from '../services/socket';
 import { GameMode, Category } from '@guess-who/shared';
+import type { Character } from '@guess-who/shared';
+import Input from '../components/ui/Input';
 
 const CATEGORY_LABELS: Record<Category, string> = {
   [Category.MUTUAL_FRIENDS]: 'Mutual Friends',
@@ -39,10 +41,17 @@ export default function LobbyPage() {
   const [bestOf, setBestOf] = useState<1 | 3>(1);
   const [copied, setCopied] = useState(false);
 
+  // Mutual Friends state
+  const [friends, setFriends] = useState<Character[]>([]);
+  const [friendName, setFriendName] = useState('');
+  const [friendGender, setFriendGender] = useState<'male' | 'female'>('male');
+
   const me = gameState?.players.find(p => p.id === myPlayerId);
   const isHost = me?.isHost ?? false;
   const playerCount = gameState?.players.length ?? 0;
-  const canStart = playerCount === 2 && category !== null;
+  const isMutualFriends = category === Category.MUTUAL_FRIENDS;
+  const canStart = playerCount === 2 && category !== null &&
+    (!isMutualFriends || (friends.length >= 12 && friends.length <= 28));
 
   // If navigated directly via invite link without a session, connect and join
   useEffect(() => {
@@ -94,14 +103,32 @@ export default function LobbyPage() {
     }
   }
 
+  function handleAddFriend() {
+    const name = friendName.trim();
+    if (!name || friends.length >= 28) return;
+    const newFriend: Character = {
+      id: `mf-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      name,
+      imageUrl: '',
+      gender: friendGender,
+    };
+    setFriends([...friends, newFriend]);
+    setFriendName('');
+  }
+
+  function handleRemoveFriend(id: string) {
+    setFriends(friends.filter(f => f.id !== id));
+  }
+
   function handleStartGame() {
     if (!canStart || !category) return;
     const socket = getSocket();
     socket.emit('configure-game', {
       mode,
       category,
-      boardSize: category === Category.MUTUAL_FRIENDS ? boardSize : boardSize,
+      boardSize: isMutualFriends ? friends.length : boardSize,
       bestOf,
+      customCharacters: isMutualFriends ? friends : undefined,
     });
   }
 
@@ -202,8 +229,57 @@ export default function LobbyPage() {
             )}
           </div>
 
-          {/* Board Size (hidden for Mutual Friends — handled in Step 3.3) */}
-          {category !== Category.MUTUAL_FRIENDS && (
+          {/* Mutual Friends Entry */}
+          {isHost && isMutualFriends && (
+            <div>
+              <p className="text-white text-sm font-medium mb-2">
+                Add Friends ({friends.length}/28, min 12)
+              </p>
+              <div className="flex flex-col gap-2 mb-3">
+                <Input
+                  id="friend-name"
+                  placeholder="Name"
+                  value={friendName}
+                  onChange={(e) => setFriendName(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleAddFriend(); }}
+                />
+                <div className="flex gap-2">
+                  <Toggle
+                    options={['Male', 'Female']}
+                    value={friendGender === 'male' ? 'Male' : 'Female'}
+                    onChange={(v) => setFriendGender(v === 'Male' ? 'male' : 'female')}
+                  />
+                  <Button onClick={handleAddFriend} disabled={!friendName.trim() || friends.length >= 28} className="ml-auto">
+                    Add
+                  </Button>
+                </div>
+              </div>
+              {friends.length > 0 && (
+                <div className="max-h-48 overflow-y-auto flex flex-col gap-1.5">
+                  {friends.map(friend => (
+                    <div key={friend.id} className="flex items-center justify-between bg-white/5 rounded-lg px-3 py-2">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs
+                          ${friend.gender === 'male' ? 'bg-blue-500/20 text-blue-400' : 'bg-pink-500/20 text-pink-400'}`}>
+                          {friend.gender === 'male' ? '♂' : '♀'}
+                        </div>
+                        <span className="text-white text-sm">{friend.name}</span>
+                      </div>
+                      <button
+                        onClick={() => handleRemoveFriend(friend.id)}
+                        className="text-neutral-400 hover:text-error text-sm cursor-pointer"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Board Size (hidden for Mutual Friends) */}
+          {!isMutualFriends && (
             <div>
               <p className="text-white text-sm font-medium mb-2">
                 Board Size: <span className="text-accent">{boardSize}</span>
