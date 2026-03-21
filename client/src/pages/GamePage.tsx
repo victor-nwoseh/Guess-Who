@@ -14,7 +14,9 @@ export default function GamePage() {
   const navigate = useNavigate();
   const { gameState, myPlayerId, myEliminatedIds, eliminateCharacter, restoreCharacter } = useGameStore();
 
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(
+    () => sessionStorage.getItem('gw_selectedCharId')
+  );
   const [confirmed, setConfirmed] = useState(false);
   const [questionText, setQuestionText] = useState('');
   const [showHistory, setShowHistory] = useState(false);
@@ -56,6 +58,7 @@ export default function GamePage() {
     if (!selectedId) return;
     const socket = getSocket();
     socket.emit('select-character', { characterId: selectedId });
+    sessionStorage.setItem('gw_selectedCharId', selectedId);
     setConfirmed(true);
   }
 
@@ -255,6 +258,7 @@ export default function GamePage() {
               setShowHistory={setShowHistory}
               myPlayerId={myPlayerId!}
               opponentName={opponent?.displayName ?? 'Opponent'}
+              onSnipe={() => { /* Step 3.8 — Snipe Modal */ }}
             />
           ) : (
             /* In-Person mode — built in Step 3.7 */
@@ -281,6 +285,7 @@ interface RemoteActionsProps {
   setShowHistory: (show: boolean) => void;
   myPlayerId: string;
   opponentName: string;
+  onSnipe: () => void;
 }
 
 function RemoteActions({
@@ -292,6 +297,7 @@ function RemoteActions({
   setShowHistory,
   myPlayerId,
   opponentName,
+  onSnipe,
 }: RemoteActionsProps) {
   const socket = getSocket();
 
@@ -374,18 +380,23 @@ function RemoteActions({
             <p className="text-neutral-500 text-xs mt-1">Waiting for {opponentName} to answer...</p>
           </div>
         ) : (
-          /* Your turn — ask a question */
-          <div className="flex gap-2">
-            <Input
-              id="question-input"
-              placeholder="Ask a yes/no question..."
-              value={questionText}
-              onChange={(e) => setQuestionText(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') handleAskQuestion(); }}
-              className="flex-1"
-            />
-            <Button onClick={handleAskQuestion} disabled={!questionText.trim()}>
-              Send
+          /* Your turn — ask a question or snipe */
+          <div className="flex flex-col gap-2">
+            <div className="flex gap-2">
+              <Input
+                id="question-input"
+                placeholder="Ask a yes/no question..."
+                value={questionText}
+                onChange={(e) => setQuestionText(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleAskQuestion(); }}
+                className="flex-1"
+              />
+              <Button onClick={handleAskQuestion} disabled={!questionText.trim()}>
+                Send
+              </Button>
+            </div>
+            <Button variant="secondary" onClick={onSnipe} className="w-full">
+              Guess (Snipe)
             </Button>
           </div>
         )
