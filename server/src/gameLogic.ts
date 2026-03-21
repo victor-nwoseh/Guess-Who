@@ -5,7 +5,17 @@ import {
   Category,
   Character,
   Question,
+  getCategoryRoster,
 } from '@guess-who/shared';
+
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 
 export function configureGame(
   room: GameState,
@@ -23,10 +33,15 @@ export function configureGame(
     room.characters = customCharacters;
     room.boardSize = customCharacters.length;
   } else {
-    // For pre-filled categories, select a random subset
-    // Category rosters will be imported from shared/src/categories.ts in Phase 4
-    // For now, accept the board size and characters will be set when categories are available
-    room.boardSize = boardSize;
+    const roster = getCategoryRoster(category);
+    if (!roster) {
+      room.boardSize = boardSize;
+      room.phase = GamePhase.CHARACTER_SELECT;
+      return;
+    }
+    const size = Math.min(boardSize, roster.characters.length);
+    room.characters = shuffle(roster.characters).slice(0, size);
+    room.boardSize = size;
   }
 
   room.phase = GamePhase.CHARACTER_SELECT;
