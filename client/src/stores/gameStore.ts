@@ -130,6 +130,7 @@ export function subscribeToServerEvents(): () => void {
 
   const onGameConfigured = ({ gameState }: { gameState: GameState }) => {
     sessionStorage.removeItem('gw_eliminatedIds');
+    sessionStorage.removeItem('gw_selectedCharId');
     set({ gameState, myEliminatedIds: [] });
   };
 
@@ -202,6 +203,7 @@ export function subscribeToServerEvents(): () => void {
 
   const onRematchStarted = ({ gameState }: { gameState: GameState }) => {
     sessionStorage.removeItem('gw_eliminatedIds');
+    sessionStorage.removeItem('gw_selectedCharId');
     set({ gameState, myEliminatedIds: [] });
   };
 
