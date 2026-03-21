@@ -70,6 +70,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   addQuestion: (question) => set((state) => {
     if (!state.gameState) return state;
+    if (state.gameState.questions.some(q => q.id === question.id)) return state;
     return {
       gameState: {
         ...state.gameState,
