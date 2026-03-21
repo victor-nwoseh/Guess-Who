@@ -323,8 +323,8 @@ function RemoteActions({
     socket.emit('answer-question', { questionId: pendingQuestion.id, answer });
   }
 
-  // Answered questions for history
-  const answeredQuestions = questions.filter(q => q.answer !== null && !q.isSnipe);
+  // Answered questions for history — only show questions I asked
+  const answeredQuestions = questions.filter(q => q.askerId === myPlayerId && q.answer !== null && !q.isSnipe);
 
   return (
     <>
@@ -351,11 +351,7 @@ function RemoteActions({
                   {answeredQuestions.map(q => (
                     <div
                       key={q.id}
-                      className={`rounded-lg px-3 py-1.5 text-xs max-w-[85%] ${
-                        q.askerId === myPlayerId
-                          ? 'bg-accent/10 text-neutral-200 self-end'
-                          : 'bg-white/5 text-neutral-300 self-start'
-                      }`}
+                      className="rounded-lg px-3 py-1.5 text-xs bg-white/5 text-neutral-200"
                     >
                       <p>{q.text}</p>
                       <span className={`font-medium ${q.answer === 'yes' ? 'text-green-400' : 'text-red-400'}`}>
