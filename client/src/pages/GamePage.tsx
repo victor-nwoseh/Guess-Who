@@ -41,6 +41,19 @@ export default function GamePage() {
   const characters = gameState?.characters ?? [];
   const me = gameState?.players.find(p => p.id === myPlayerId);
 
+  // Reset local state when a new round starts (phase returns to character_select)
+  useEffect(() => {
+    if (phase === GamePhase.CHARACTER_SELECT) {
+      setSelectedId(sessionStorage.getItem('gw_selectedCharId'));
+      setConfirmed(false);
+      setSnipeResult(null);
+      setShowSnipeModal(false);
+      setAnswerBubble(null);
+      setQuestionText('');
+      setShowHistory(false);
+    }
+  }, [phase]);
+
   // Show answer bubble when opponent answers my question
   useEffect(() => {
     const socket = getSocket();
