@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type { GameState, GamePhase, Question, Player } from '@guess-who/shared';
 import { getSocket, storeSession } from '../services/socket';
 import { playSound } from '../services/audio';
+import { useToastStore } from './toastStore';
 
 interface GameStore {
   // Server-synced state
@@ -257,7 +258,7 @@ export function subscribeToServerEvents(): () => void {
   };
 
   const onError = ({ message }: { message: string }) => {
-    console.error('Server error:', message);
+    useToastStore.getState().addToast(message, 'error');
   };
 
   socket.on('room-created', onRoomCreated);
