@@ -13,7 +13,7 @@ export default function ScreenLayout({ children, className = '' }: ScreenLayoutP
       animate={{ opacity: 1 }}
       transition={{ duration: 0.2 }}
       className={`min-h-[100dvh] w-full bg-primary flex flex-col relative
-        px-4 py-6 safe-area-inset ${className}`}
+        safe-area-inset ${className}`}
     >
       {children}
     </motion.div>
