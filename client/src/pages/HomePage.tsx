@@ -53,6 +53,11 @@ export default function HomePage() {
 
   function handleJoinRoom() {
     if (!canAct || roomCode.trim().length === 0) return;
+    const code = roomCode.trim().toUpperCase();
+    if (code.length !== 4 || !/^[A-Z0-9]+$/.test(code)) {
+      setError('Room code must be 4 characters (letters and numbers).');
+      return;
+    }
     setError('');
     const socket = setupSocketAndListeners();
     playSound('buttonTap');

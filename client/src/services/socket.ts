@@ -1,5 +1,6 @@
 import { io, Socket } from 'socket.io-client';
 import type { ClientEvents, ServerEvents } from '@guess-who/shared';
+import { useToastStore } from '../stores/toastStore';
 
 type TypedSocket = Socket<ServerEvents, ClientEvents>;
 
@@ -16,6 +17,14 @@ export function getSocket(): TypedSocket {
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
     }) as TypedSocket;
+
+    socket.on('connect_error', () => {
+      useToastStore.getState().addToast('Unable to connect to server. Retrying...', 'error');
+    });
+
+    socket.on('reconnect_failed' as any, () => {
+      useToastStore.getState().addToast('Connection lost. Please refresh the page.', 'error');
+    });
 
     // On successful connection, attempt reconnection to previous room
     socket.on('connect', () => {
