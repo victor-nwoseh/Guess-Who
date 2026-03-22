@@ -155,6 +155,7 @@ export function processSnipe(
     if (sniper.wins >= winsNeeded) {
       room.phase = GamePhase.GAME_OVER;
       room.winnerId = sniperId;
+      sniper.seriesWins += 1;
     } else {
       room.phase = GamePhase.ROUND_OVER;
       room.winnerId = sniperId;

@@ -25,6 +25,7 @@ export default function ResultsPage() {
   const iWon = winnerId === myPlayerId;
   const winner = players.find(p => p.id === winnerId);
   const roundNumber = gameState?.roundNumber ?? 1;
+  const isBestOf3 = (gameState?.bestOf ?? 1) === 3;
 
   // Fire confetti for the winner
   useEffect(() => {
@@ -143,33 +144,69 @@ export default function ResultsPage() {
           </p>
         </motion.div>
 
-        {/* Final scores */}
+        {/* Series score (best-of-3 only) */}
+        {isBestOf3 && (
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="flex flex-col items-center gap-1"
+          >
+            <p className="text-neutral-400 text-xs uppercase tracking-wide">Series Score</p>
+            <div className="flex items-center gap-4">
+              <div className="flex flex-col items-center gap-0.5">
+                <span className={`text-2xl font-bold font-heading ${
+                  me?.id === winnerId ? 'text-accent' : 'text-white'
+                }`}>
+                  {me?.wins ?? 0}
+                </span>
+                <span className="text-neutral-400 text-xs">{me?.displayName}</span>
+              </div>
+              <span className="text-neutral-500 text-lg font-bold">—</span>
+              <div className="flex flex-col items-center gap-0.5">
+                <span className={`text-2xl font-bold font-heading ${
+                  opponent?.id === winnerId ? 'text-accent' : 'text-white'
+                }`}>
+                  {opponent?.wins ?? 0}
+                </span>
+                <span className="text-neutral-400 text-xs">{opponent?.displayName}</span>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Overall score */}
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="flex items-center gap-6"
+          transition={{ delay: isBestOf3 ? 0.3 : 0.2 }}
+          className="flex flex-col items-center gap-1"
         >
-          <div className="flex flex-col items-center gap-1">
-            <span className={`text-3xl font-bold font-heading ${
-              me?.id === winnerId ? 'text-accent' : 'text-white'
-            }`}>
-              {me?.wins ?? 0}
-            </span>
-            <span className="text-neutral-400 text-sm">{me?.displayName}</span>
-            {me?.id === winnerId && <Badge variant="accent">Winner</Badge>}
-          </div>
+          {isBestOf3 && (
+            <p className="text-neutral-400 text-xs uppercase tracking-wide">Overall</p>
+          )}
+          <div className="flex items-center gap-6">
+            <div className="flex flex-col items-center gap-1">
+              <span className={`text-3xl font-bold font-heading ${
+                me?.id === winnerId ? 'text-accent' : 'text-white'
+              }`}>
+                {me?.seriesWins ?? 0}
+              </span>
+              <span className="text-neutral-400 text-sm">{me?.displayName}</span>
+              {me?.id === winnerId && <Badge variant="accent">Winner</Badge>}
+            </div>
 
-          <span className="text-neutral-500 text-2xl font-bold">—</span>
+            <span className="text-neutral-500 text-2xl font-bold">—</span>
 
-          <div className="flex flex-col items-center gap-1">
-            <span className={`text-3xl font-bold font-heading ${
-              opponent?.id === winnerId ? 'text-accent' : 'text-white'
-            }`}>
-              {opponent?.wins ?? 0}
-            </span>
-            <span className="text-neutral-400 text-sm">{opponent?.displayName}</span>
-            {opponent?.id === winnerId && <Badge variant="accent">Winner</Badge>}
+            <div className="flex flex-col items-center gap-1">
+              <span className={`text-3xl font-bold font-heading ${
+                opponent?.id === winnerId ? 'text-accent' : 'text-white'
+              }`}>
+                {opponent?.seriesWins ?? 0}
+              </span>
+              <span className="text-neutral-400 text-sm">{opponent?.displayName}</span>
+              {opponent?.id === winnerId && <Badge variant="accent">Winner</Badge>}
+            </div>
           </div>
         </motion.div>
 

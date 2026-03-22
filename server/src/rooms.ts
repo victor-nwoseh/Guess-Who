@@ -23,6 +23,7 @@ export function createRoom(hostId: string, displayName: string): GameState {
     selectedCharacterId: null,
     eliminatedIds: [],
     wins: 0,
+    seriesWins: 0,
   };
 
   const gameState: GameState = {
@@ -57,6 +58,7 @@ export function joinRoom(roomCode: string, playerId: string, displayName: string
     selectedCharacterId: null,
     eliminatedIds: [],
     wins: 0,
+    seriesWins: 0,
   };
 
   room.players.push(player);
