@@ -89,6 +89,7 @@ export interface ClientEvents {
   'answer-question': (data: { questionId: string; answer: 'yes' | 'no' }) => void;
   'end-turn': () => void;
   'snipe': (data: { characterId: string }) => void;
+  'next-round': () => void;
   'request-rematch': () => void;
   'accept-rematch': () => void;
   'decline-rematch': () => void;
