@@ -235,7 +235,7 @@ export default function GamePage() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Badge variant={isMyTurn ? 'accent' : 'default'}>
+              <Badge variant={isMyTurn ? 'accent' : 'default'} className={isMyTurn ? 'animate-pulse' : ''}>
                 {isMyTurn ? 'Your Turn' : "Opponent's Turn"}
               </Badge>
               <MuteButton />
@@ -348,21 +348,41 @@ export default function GamePage() {
             onClick={() => !snipeResult.correct && setSnipeResult(null)}
           >
             <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
+              initial={{ scale: 0.3, opacity: 0, rotateZ: -5 }}
+              animate={{ scale: 1, opacity: 1, rotateZ: 0 }}
               exit={{ scale: 0.8, opacity: 0 }}
-              className="bg-primary-light rounded-2xl p-6 mx-4 text-center max-w-sm"
+              transition={{ type: 'spring', damping: 12, stiffness: 200 }}
+              className={`bg-primary-light rounded-2xl p-6 mx-4 text-center max-w-sm border-2 ${
+                snipeResult.correct ? 'border-green-400/50' : 'border-red-400/50'
+              }`}
             >
-              <p className="text-lg font-bold text-white mb-2">
+              <motion.p
+                initial={{ y: 10, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.15 }}
+                className="text-lg font-bold text-white mb-2"
+              >
                 {snipeResult.sniperName} guessed {snipeResult.characterName}
-              </p>
-              <p className={`text-2xl font-bold font-heading ${
-                snipeResult.correct ? 'text-green-400' : 'text-red-400'
-              }`}>
+              </motion.p>
+              <motion.p
+                initial={{ scale: 0.5, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.3, type: 'spring', damping: 10, stiffness: 200 }}
+                className={`text-3xl font-bold font-heading ${
+                  snipeResult.correct ? 'text-green-400' : 'text-red-400'
+                }`}
+              >
                 {snipeResult.correct ? 'Correct!' : 'Wrong!'}
-              </p>
+              </motion.p>
               {!snipeResult.correct && (
-                <p className="text-neutral-400 text-sm mt-2">Tap to dismiss</p>
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.5 }}
+                  className="text-neutral-400 text-sm mt-2"
+                >
+                  Tap to dismiss
+                </motion.p>
               )}
             </motion.div>
           </motion.div>

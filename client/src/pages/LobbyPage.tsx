@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import ScreenLayout from '../components/ui/ScreenLayout';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
@@ -216,8 +217,14 @@ export default function LobbyPage() {
             Players ({playerCount}/2)
           </p>
           <div className="flex flex-col gap-2">
-            {gameState?.players.map(player => (
-              <div key={player.id} className="flex items-center gap-3">
+            {gameState?.players.map((player, i) => (
+              <motion.div
+                key={player.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.1 }}
+                className="flex items-center gap-3"
+              >
                 <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center">
                   <span className="text-accent text-sm font-bold">
                     {player.displayName.charAt(0).toUpperCase()}
@@ -226,7 +233,7 @@ export default function LobbyPage() {
                 <span className="text-white font-medium">{player.displayName}</span>
                 {player.isHost && <Badge variant="accent">Host</Badge>}
                 {player.id === myPlayerId && <Badge>You</Badge>}
-              </div>
+              </motion.div>
             ))}
             {playerCount < 2 && (
               <div className="flex items-center gap-3 opacity-40">
