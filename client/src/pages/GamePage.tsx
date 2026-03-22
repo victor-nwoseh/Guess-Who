@@ -11,6 +11,7 @@ import CharacterCard from '../components/game/CharacterCard';
 import Avatar from '../components/game/Avatar';
 import { useGameStore, subscribeToServerEvents } from '../stores/gameStore';
 import { getSocket, connect, getStoredSession } from '../services/socket';
+import MuteButton from '../components/ui/MuteButton';
 import { GamePhase, GameMode } from '@guess-who/shared';
 
 export default function GamePage() {
@@ -121,6 +122,9 @@ export default function GamePage() {
   if (phase === GamePhase.CHARACTER_SELECT) {
     return (
       <ScreenLayout>
+        <div className="absolute top-4 right-4">
+          <MuteButton />
+        </div>
         <div className="flex flex-col gap-4 flex-1">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-white font-heading">
@@ -205,9 +209,12 @@ export default function GamePage() {
                 <Badge variant="default">{opponent?.wins ?? 0}</Badge>
               </div>
             </div>
-            <Badge variant={isMyTurn ? 'accent' : 'default'}>
-              {isMyTurn ? 'Your Turn' : "Opponent's Turn"}
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Badge variant={isMyTurn ? 'accent' : 'default'}>
+                {isMyTurn ? 'Your Turn' : "Opponent's Turn"}
+              </Badge>
+              <MuteButton />
+            </div>
           </div>
           {myCharacter && (
             <div className="flex items-center gap-1.5">

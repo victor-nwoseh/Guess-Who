@@ -9,6 +9,7 @@ import { connect, getSocket, storeSession } from '../services/socket';
 import { GameMode, Category } from '@guess-who/shared';
 import type { Character } from '@guess-who/shared';
 import Input from '../components/ui/Input';
+import MuteButton from '../components/ui/MuteButton';
 
 const CATEGORY_LABELS: Record<Category, string> = {
   [Category.MUTUAL_FRIENDS]: 'Mutual Friends',
@@ -134,6 +135,9 @@ export default function LobbyPage() {
 
   return (
     <ScreenLayout>
+      <div className="absolute top-4 right-4">
+        <MuteButton />
+      </div>
       <div className="flex flex-col gap-6 w-full max-w-md mx-auto flex-1">
         {/* Room Code Header */}
         <div className="text-center">
