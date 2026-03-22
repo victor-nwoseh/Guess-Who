@@ -128,5 +128,6 @@ export interface ServerEvents {
   'rematch-started': (data: { gameState: GameState }) => void;
   'rematch-declined': () => void;
   'opponent-disconnected': () => void;
+  'opponent-reconnected': () => void;
   'error': (data: { message: string }) => void;
 }

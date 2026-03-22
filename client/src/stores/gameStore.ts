@@ -13,6 +13,7 @@ interface GameStore {
   myEliminatedIds: string[];
   displayName: string;
   revealedCharacters: { playerId: string; characterId: string }[] | null;
+  opponentDisconnected: boolean;
 
   // Actions — state updates
   setGameState: (gameState: GameState) => void;
@@ -28,6 +29,7 @@ interface GameStore {
   setCurrentTurn: (playerId: string) => void;
   setWinner: (winnerId: string) => void;
   clearRevealedCharacters: () => void;
+  setOpponentDisconnected: (val: boolean) => void;
   reset: () => void;
 }
 
@@ -38,6 +40,7 @@ const initialState = {
   myEliminatedIds: JSON.parse(sessionStorage.getItem('gw_eliminatedIds') || '[]') as string[],
   displayName: localStorage.getItem('gw_displayName') || '',
   revealedCharacters: null as { playerId: string; characterId: string }[] | null,
+  opponentDisconnected: false,
 };
 
 export const useGameStore = create<GameStore>((set, get) => ({
@@ -116,12 +119,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   clearRevealedCharacters: () => set({ revealedCharacters: null }),
 
+  setOpponentDisconnected: (val) => set({ opponentDisconnected: val }),
+
   reset: () => set({
     roomCode: null,
     gameState: null,
     myPlayerId: null,
     myEliminatedIds: [],
     revealedCharacters: null,
+    opponentDisconnected: false,
     displayName: get().displayName,
   }),
 }));
@@ -243,7 +249,11 @@ export function subscribeToServerEvents(): () => void {
   };
 
   const onOpponentDisconnected = () => {
-    // Phase 6 will add a modal for this
+    set({ opponentDisconnected: true });
+  };
+
+  const onOpponentReconnected = () => {
+    set({ opponentDisconnected: false });
   };
 
   const onError = ({ message }: { message: string }) => {
@@ -263,6 +273,7 @@ export function subscribeToServerEvents(): () => void {
   socket.on('game-over', onGameOver);
   socket.on('rematch-started', onRematchStarted);
   socket.on('opponent-disconnected', onOpponentDisconnected);
+  socket.on('opponent-reconnected', onOpponentReconnected);
   socket.on('error', onError);
 
   // Return cleanup function
@@ -280,6 +291,7 @@ export function subscribeToServerEvents(): () => void {
     socket.off('game-over', onGameOver);
     socket.off('rematch-started', onRematchStarted);
     socket.off('opponent-disconnected', onOpponentDisconnected);
+    socket.off('opponent-reconnected', onOpponentReconnected);
     socket.off('error', onError);
   };
 }

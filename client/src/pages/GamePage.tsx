@@ -8,6 +8,7 @@ import LoadingSpinner from '../components/ui/LoadingSpinner';
 import Input from '../components/ui/Input';
 import SnipeModal from '../components/game/SnipeModal';
 import RoundOverModal from '../components/game/RoundOverModal';
+import DisconnectModal from '../components/game/DisconnectModal';
 import CharacterCard from '../components/game/CharacterCard';
 import Avatar from '../components/game/Avatar';
 import { useGameStore, subscribeToServerEvents } from '../stores/gameStore';
@@ -367,6 +368,8 @@ export default function GamePage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <DisconnectModal />
     </ScreenLayout>
   );
 }

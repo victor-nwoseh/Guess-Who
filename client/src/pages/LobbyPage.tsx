@@ -10,6 +10,7 @@ import { GameMode, Category } from '@guess-who/shared';
 import type { Character } from '@guess-who/shared';
 import Input from '../components/ui/Input';
 import MuteButton from '../components/ui/MuteButton';
+import DisconnectModal from '../components/game/DisconnectModal';
 
 const CATEGORY_LABELS: Record<Category, string> = {
   [Category.MUTUAL_FRIENDS]: 'Mutual Friends',
@@ -336,6 +337,8 @@ export default function LobbyPage() {
           </p>
         )}
       </div>
+
+      <DisconnectModal />
     </ScreenLayout>
   );
 }
