@@ -237,7 +237,7 @@ export default function ResultsPage() {
       </div>
 
       {/* Rematch request modal */}
-      <Modal open={rematchState === 'received'} onClose={handleDeclineRematch}>
+      <Modal open={rematchState === 'received'} onClose={handleDeclineRematch} ariaLabel="Rematch request">
         <div className="flex flex-col items-center gap-4">
           <p className="text-white text-lg font-bold font-heading">
             {opponent?.displayName} wants a rematch!

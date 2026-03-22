@@ -41,7 +41,7 @@ export default function RoundOverModal({
   const opponentChar = opponent ? getCharacter(opponent.id) : undefined;
 
   return (
-    <Modal open={open} onClose={() => {}}>
+    <Modal open={open} onClose={() => {}} ariaLabel="Round results">
       <div className="flex flex-col items-center gap-5">
         {/* Winner announcement */}
         <motion.div

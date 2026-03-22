@@ -18,6 +18,8 @@ export default function Avatar({ name, gender = 'male', size = 80 }: AvatarProps
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
         className="rounded-lg"
+        role="img"
+        aria-label={`${gender} avatar`}
       >
         {/* Background */}
         <rect width="80" height="80" rx="8" fill={bgColor} />

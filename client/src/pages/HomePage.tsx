@@ -195,7 +195,7 @@ export default function HomePage() {
         </button>
       </div>
 
-      <Modal open={showHowToPlay} onClose={() => setShowHowToPlay(false)}>
+      <Modal open={showHowToPlay} onClose={() => setShowHowToPlay(false)} ariaLabel="How to play">
         <div className="flex flex-col gap-5">
           <h2 className="text-xl font-bold text-white font-heading text-center">How to Play</h2>
 

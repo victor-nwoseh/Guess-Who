@@ -5,7 +5,7 @@ export default function ToastContainer() {
   const { toasts, removeToast } = useToastStore();
 
   return (
-    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[60] w-[calc(100%-2rem)] max-w-sm flex flex-col gap-2 pointer-events-none">
+    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[60] w-[calc(100%-2rem)] max-w-sm flex flex-col gap-2 pointer-events-none" role="status" aria-live="polite">
       <AnimatePresence>
         {toasts.map(toast => (
           <motion.div
