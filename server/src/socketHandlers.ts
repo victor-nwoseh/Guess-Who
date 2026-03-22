@@ -20,6 +20,9 @@ type TypedServer = Server<ClientEvents, ServerEvents>;
 // Track reconnection data: maps old socket IDs to room codes
 const disconnectedPlayers = new Map<string, { roomCode: string; timeout: NodeJS.Timeout }>();
 
+// Track which players have clicked "Next Round" per room
+const nextRoundReady = new Map<string, Set<string>>();
+
 export function registerHandlers(io: TypedServer, socket: TypedSocket): void {
 
   socket.on('create-room', ({ displayName }) => {
@@ -236,14 +239,28 @@ export function registerHandlers(io: TypedServer, socket: TypedSocket): void {
   socket.on('next-round', () => {
     const room = getRoomByPlayerId(socket.id);
     if (!room) return;
-    if (room.phase !== GamePhase.ROUND_OVER) return;
 
-    resetForNewRound(room);
+    // Track this player as ready
+    if (!nextRoundReady.has(room.roomCode)) {
+      nextRoundReady.set(room.roomCode, new Set());
+    }
+    const ready = nextRoundReady.get(room.roomCode)!;
+    if (ready.has(socket.id)) return; // already clicked
+    ready.add(socket.id);
 
-    for (const p of room.players) {
-      io.to(p.id).emit('rematch-started', {
-        gameState: stripSecretForPlayer(room, p.id),
-      });
+    // Reset room state on first click (phase changes from round_over to character_select)
+    if (room.phase === GamePhase.ROUND_OVER) {
+      resetForNewRound(room);
+    }
+
+    // Send new state only to the player who clicked
+    io.to(socket.id).emit('rematch-started', {
+      gameState: stripSecretForPlayer(room, socket.id),
+    });
+
+    // Clean up tracking when both players are ready
+    if (ready.size >= 2) {
+      nextRoundReady.delete(room.roomCode);
     }
   });
 
@@ -310,6 +327,7 @@ export function registerHandlers(io: TypedServer, socket: TypedSocket): void {
         const stillDisconnected = currentRoom.players.find(p => p.id === socket.id);
         if (stillDisconnected) {
           deleteRoom(room.roomCode);
+          nextRoundReady.delete(room.roomCode);
         }
       }
     }, 30000);
