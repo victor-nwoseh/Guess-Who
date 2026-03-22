@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ScreenLayout from '../components/ui/ScreenLayout';
 import Button from '../components/ui/Button';
@@ -12,6 +12,39 @@ import MuteButton from '../components/ui/MuteButton';
 import { playSound } from '../services/audio';
 import type { GameState } from '@guess-who/shared';
 
+interface BeforeInstallPromptEvent extends Event {
+  prompt(): Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
+
+function useInstallPrompt() {
+  const deferredPrompt = useRef<BeforeInstallPromptEvent | null>(null);
+  const [canInstall, setCanInstall] = useState(false);
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+    || (navigator as any).standalone === true;
+
+  useEffect(() => {
+    if (isStandalone) return;
+    const handler = (e: Event) => {
+      e.preventDefault();
+      deferredPrompt.current = e as BeforeInstallPromptEvent;
+      setCanInstall(true);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, [isStandalone]);
+
+  async function promptInstall() {
+    if (!deferredPrompt.current) return;
+    await deferredPrompt.current.prompt();
+    const { outcome } = await deferredPrompt.current.userChoice;
+    if (outcome === 'accepted') setCanInstall(false);
+    deferredPrompt.current = null;
+  }
+
+  return { canInstall, promptInstall, isStandalone };
+}
+
 export default function HomePage() {
   const navigate = useNavigate();
   const { displayName, setDisplayName, setGameState, setMyPlayerId, setRoomCode } = useGameStore();
@@ -21,6 +54,10 @@ export default function HomePage() {
   const [isMatchmaking, setIsMatchmaking] = useState(false);
   const [error, setError] = useState('');
   const [showHowToPlay, setShowHowToPlay] = useState(false);
+  const [showInstallGuide, setShowInstallGuide] = useState(false);
+  const { canInstall, promptInstall, isStandalone } = useInstallPrompt();
+
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 
   const canAct = displayName.trim().length > 0;
 
@@ -187,13 +224,54 @@ export default function HomePage() {
           </div>
         )}
 
-        <button
-          onClick={() => setShowHowToPlay(true)}
-          className="text-neutral-400 text-sm underline underline-offset-2 hover:text-neutral-300 transition-colors cursor-pointer mt-2"
-        >
-          How to Play
-        </button>
+        <div className="flex items-center gap-4 mt-2">
+          <button
+            onClick={() => setShowHowToPlay(true)}
+            className="text-neutral-400 text-sm underline underline-offset-2 hover:text-neutral-300 transition-colors cursor-pointer"
+          >
+            How to Play
+          </button>
+          {!isStandalone && (
+            <button
+              onClick={() => {
+                if (canInstall) {
+                  promptInstall();
+                } else {
+                  setShowInstallGuide(true);
+                }
+              }}
+              className="text-neutral-400 text-sm underline underline-offset-2 hover:text-neutral-300 transition-colors cursor-pointer"
+            >
+              Install App
+            </button>
+          )}
+        </div>
       </div>
+
+      <Modal open={showInstallGuide} onClose={() => setShowInstallGuide(false)} ariaLabel="Install app">
+        <div className="flex flex-col gap-5">
+          <h2 className="text-xl font-bold text-white font-heading text-center">Install App</h2>
+          <p className="text-neutral-400 text-sm text-center">
+            Add Guess Who? to your home screen for the best experience — fullscreen, no browser bar.
+          </p>
+          {isIOS ? (
+            <div className="flex flex-col gap-4">
+              <InstallStep number={1} description={'Tap the Share button (square with arrow) in Safari'} />
+              <InstallStep number={2} description={'Scroll down and tap "Add to Home Screen"'} />
+              <InstallStep number={3} description={'Tap "Add" to confirm'} />
+            </div>
+          ) : (
+            <div className="flex flex-col gap-4">
+              <InstallStep number={1} description={'Tap the menu (three dots) in Chrome'} />
+              <InstallStep number={2} description={'Tap "Add to Home Screen" or "Install app"'} />
+              <InstallStep number={3} description={'Tap "Install" to confirm'} />
+            </div>
+          )}
+          <Button variant="secondary" onClick={() => setShowInstallGuide(false)} className="w-full">
+            Got it
+          </Button>
+        </div>
+      </Modal>
 
       <Modal open={showHowToPlay} onClose={() => setShowHowToPlay(false)} ariaLabel="How to play">
         <div className="flex flex-col gap-5">
@@ -238,6 +316,17 @@ export default function HomePage() {
         </div>
       </Modal>
     </ScreenLayout>
+  );
+}
+
+function InstallStep({ number, description }: { number: number; description: string }) {
+  return (
+    <div className="flex gap-3 items-start">
+      <div className="w-7 h-7 rounded-full bg-accent/20 flex items-center justify-center shrink-0">
+        <span className="text-accent text-sm font-bold">{number}</span>
+      </div>
+      <p className="text-neutral-300 text-sm pt-0.5">{description}</p>
+    </div>
   );
 }
 
