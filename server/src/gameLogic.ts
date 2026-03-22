@@ -173,11 +173,18 @@ export function processSnipe(
 
 export function resetForRematch(room: GameState): void {
   room.phase = GamePhase.CHARACTER_SELECT;
-  room.characters = [];
   room.currentTurnPlayerId = null;
   room.questions = [];
-  room.roundNumber += 1;
+  room.roundNumber = 1;
   room.winnerId = null;
+
+  // Re-shuffle characters from the same category
+  if (room.category && room.category !== Category.MUTUAL_FRIENDS) {
+    const roster = getCategoryRoster(room.category);
+    if (roster) {
+      room.characters = shuffle(roster.characters).slice(0, room.boardSize);
+    }
+  }
 
   for (const player of room.players) {
     player.selectedCharacterId = null;
