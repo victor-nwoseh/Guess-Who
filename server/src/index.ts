@@ -19,6 +19,7 @@ const io = new Server<ClientEvents, ServerEvents>(httpServer, {
     origin: CLIENT_URL,
     methods: ['GET', 'POST'],
   },
+  perMessageDeflate: true,
 });
 
 app.get('/health', (_req, res) => {

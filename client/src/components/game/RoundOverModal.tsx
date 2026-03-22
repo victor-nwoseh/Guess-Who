@@ -64,7 +64,10 @@ export default function RoundOverModal({
           <div className="flex flex-col items-center gap-1.5">
             <p className="text-neutral-400 text-xs">Your pick</p>
             {myChar?.imageUrl ? (
-              <img src={myChar.imageUrl} alt={myChar.name} className="w-16 h-16 rounded-xl object-cover" />
+              <picture>
+                <source srcSet={myChar.imageUrl!.replace('.jpg', '.webp')} type="image/webp" />
+                <img src={myChar.imageUrl} alt={myChar.name} className="w-16 h-16 rounded-xl object-cover" loading="lazy" />
+              </picture>
             ) : myChar ? (
               <Avatar name="" gender={myChar.gender} size={64} />
             ) : (
@@ -79,7 +82,10 @@ export default function RoundOverModal({
           <div className="flex flex-col items-center gap-1.5">
             <p className="text-neutral-400 text-xs">{opponent?.displayName}'s pick</p>
             {opponentChar?.imageUrl ? (
-              <img src={opponentChar.imageUrl} alt={opponentChar.name} className="w-16 h-16 rounded-xl object-cover" />
+              <picture>
+                <source srcSet={opponentChar.imageUrl!.replace('.jpg', '.webp')} type="image/webp" />
+                <img src={opponentChar.imageUrl} alt={opponentChar.name} className="w-16 h-16 rounded-xl object-cover" loading="lazy" />
+              </picture>
             ) : opponentChar ? (
               <Avatar name="" gender={opponentChar.gender} size={64} />
             ) : (
