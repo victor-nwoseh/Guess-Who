@@ -7,6 +7,7 @@ import LoadingSpinner from '../components/ui/LoadingSpinner';
 import { useGameStore } from '../stores/gameStore';
 import { connect, storeSession } from '../services/socket';
 import { subscribeToServerEvents } from '../stores/gameStore';
+import MuteButton from '../components/ui/MuteButton';
 import type { GameState } from '@guess-who/shared';
 
 export default function HomePage() {
@@ -105,6 +106,9 @@ export default function HomePage() {
 
   return (
     <ScreenLayout className="items-center justify-center">
+      <div className="absolute top-4 right-4">
+        <MuteButton />
+      </div>
       <div className="w-full max-w-sm flex flex-col items-center gap-8">
         {/* Logo / Title */}
         <div className="text-center">
