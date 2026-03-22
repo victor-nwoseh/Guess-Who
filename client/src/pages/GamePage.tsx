@@ -72,10 +72,8 @@ export default function GamePage() {
       });
       setShowSnipeModal(false);
 
-      // Auto-dismiss after 3 seconds if wrong guess
-      if (!data.correct) {
-        setTimeout(() => setSnipeResult(null), 3000);
-      }
+      // Auto-dismiss: 3 seconds for wrong guess, 1.5 seconds for correct (modal takes over)
+      setTimeout(() => setSnipeResult(null), data.correct ? 1500 : 3000);
     };
     socket.on('snipe-result', handleSnipeResult);
     return () => { socket.off('snipe-result', handleSnipeResult); };
