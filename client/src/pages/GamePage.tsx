@@ -58,9 +58,9 @@ export default function GamePage() {
   // Show answer bubble when opponent answers my question
   useEffect(() => {
     const socket = getSocket();
-    const handleAnswered = (data: { question: { id: string; askerId: string; text: string; answer: 'yes' | 'no'; isSnipe?: boolean } }) => {
+    const handleAnswered = (data: { question: { id: string; askerId: string; text: string | null; answer: 'yes' | 'no' | null; isSnipe?: boolean } }) => {
       const pid = useGameStore.getState().myPlayerId;
-      if (data.question.askerId === pid && !data.question.isSnipe) {
+      if (data.question.askerId === pid && !data.question.isSnipe && data.question.text && data.question.answer) {
         setAnswerBubble({ question: data.question.text, answer: data.question.answer });
         setTimeout(() => setAnswerBubble(null), 4000);
       }
@@ -114,7 +114,7 @@ export default function GamePage() {
       const session = getStoredSession();
       if (session.socketId && session.roomCode) {
         // Attempt reconnection — socket.ts handles emitting reconnect-session on connect
-        const socket = connect();
+        connect();
         subscribeToServerEvents();
 
         // Give reconnection a chance, then redirect if still no state
