@@ -7,6 +7,7 @@ import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import Modal from '../components/ui/Modal';
 import MuteButton from '../components/ui/MuteButton';
+import DisconnectModal from '../components/game/DisconnectModal';
 import { useGameStore } from '../stores/gameStore';
 import { getSocket, disconnect, clearSession } from '../services/socket';
 import { playSound } from '../services/audio';
@@ -24,7 +25,6 @@ export default function ResultsPage() {
   const winnerId = gameState?.winnerId;
   const iWon = winnerId === myPlayerId;
   const winner = players.find(p => p.id === winnerId);
-  const roundNumber = gameState?.roundNumber ?? 1;
   const isBestOf3 = (gameState?.bestOf ?? 1) === 3;
 
   // Fire confetti for the winner
@@ -210,24 +210,11 @@ export default function ResultsPage() {
           </div>
         </motion.div>
 
-        {/* Session stats */}
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.35 }}
-          className="w-full bg-white/5 rounded-xl p-4 flex justify-center"
-        >
-          <div className="text-center">
-            <p className="text-white text-lg font-bold">{roundNumber}</p>
-            <p className="text-neutral-400 text-xs">Rounds Played</p>
-          </div>
-        </motion.div>
-
         {/* Action buttons */}
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.5 }}
+          transition={{ delay: 0.35 }}
           className="w-full flex flex-col gap-3"
         >
           {rematchState === 'requesting' ? (
@@ -240,7 +227,7 @@ export default function ResultsPage() {
             </Button>
           ) : (
             <Button onClick={handleRematch} className="w-full">
-              Rematch
+              Rematch (Same Category)
             </Button>
           )}
           <Button variant="secondary" onClick={handleHome} className="w-full">
@@ -265,6 +252,8 @@ export default function ResultsPage() {
           </div>
         </div>
       </Modal>
+
+      <DisconnectModal />
     </ScreenLayout>
   );
 }

@@ -353,6 +353,12 @@ export function handleReconnection(io: TypedServer, socket: TypedSocket, oldSock
     socket.emit('room-joined', {
       gameState: stripSecretForPlayer(room, socket.id),
     });
+
+    // Notify opponent that this player reconnected
+    const opponent = room.players.find(p => p.id !== socket.id);
+    if (opponent) {
+      io.to(opponent.id).emit('opponent-reconnected');
+    }
   }
 
   return true;
