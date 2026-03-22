@@ -108,12 +108,15 @@ export default function CharacterCard({
                 size={avatarPx}
               />
             ) : (
-              <img
-                src={character.imageUrl}
-                alt={character.name}
-                className={`${imgSize} rounded-lg object-cover`}
-                loading="lazy"
-              />
+              <picture>
+                <source srcSet={character.imageUrl!.replace('.jpg', '.webp')} type="image/webp" />
+                <img
+                  src={character.imageUrl}
+                  alt={character.name}
+                  className={`${imgSize} rounded-lg object-cover`}
+                  loading="lazy"
+                />
+              </picture>
             )}
           </motion.div>
         )}

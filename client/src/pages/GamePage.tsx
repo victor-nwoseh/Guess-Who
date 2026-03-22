@@ -245,7 +245,10 @@ export default function GamePage() {
             <div className="flex items-center gap-1.5">
               <span className="text-neutral-500 text-xs">Your character:</span>
               {myCharacter.imageUrl ? (
-                <img src={myCharacter.imageUrl} alt="" className="w-5 h-5 rounded object-cover" />
+                <picture>
+                  <source srcSet={myCharacter.imageUrl!.replace('.jpg', '.webp')} type="image/webp" />
+                  <img src={myCharacter.imageUrl} alt="" className="w-5 h-5 rounded object-cover" />
+                </picture>
               ) : (
                 <Avatar name="" gender={myCharacter.gender} size={20} />
               )}
