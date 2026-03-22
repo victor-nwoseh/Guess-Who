@@ -55,26 +55,42 @@ export default function LobbyPage() {
   const canStart = playerCount === 2 && category !== null &&
     (!isMutualFriends || (friends.length >= 12 && friends.length <= 50));
 
-  // If navigated directly via invite link without a session, connect and join
+  const [inviteName, setInviteName] = useState('');
+  const [inviteError, setInviteError] = useState('');
+  const isInviteJoin = !gameState && !!urlRoomCode;
+
+  // If navigated directly via invite link with an existing displayName, auto-join
   useEffect(() => {
     if (!gameState && urlRoomCode && displayName) {
-      const socket = connect();
-      subscribeToServerEvents();
-
-      socket.once('room-joined', ({ gameState: gs }) => {
-        useGameStore.getState().setGameState(gs);
-        useGameStore.getState().setMyPlayerId(socket.id!);
-        storeSession(gs.roomCode, displayName);
-      });
-
-      socket.once('error', ({ message }) => {
-        console.error(message);
-        navigate('/');
-      });
-
-      socket.emit('join-room', { roomCode: urlRoomCode, displayName });
+      joinRoomWithName(displayName);
     }
-  }, [gameState, urlRoomCode, displayName, navigate]);
+  }, []);  // eslint-disable-line react-hooks/exhaustive-deps
+
+  function joinRoomWithName(name: string) {
+    if (!urlRoomCode) return;
+    const socket = connect();
+    subscribeToServerEvents();
+
+    socket.once('room-joined', ({ gameState: gs }) => {
+      useGameStore.getState().setGameState(gs);
+      useGameStore.getState().setMyPlayerId(socket.id!);
+      useGameStore.getState().setDisplayName(name);
+      storeSession(gs.roomCode, name);
+    });
+
+    socket.once('error', ({ message }) => {
+      setInviteError(message);
+    });
+
+    socket.emit('join-room', { roomCode: urlRoomCode, displayName: name });
+  }
+
+  function handleInviteJoin() {
+    const name = inviteName.trim();
+    if (!name) return;
+    setInviteError('');
+    joinRoomWithName(name);
+  }
 
   // Listen for game-configured to transition to game
   useEffect(() => {
@@ -132,6 +148,42 @@ export default function LobbyPage() {
       bestOf,
       customCharacters: isMutualFriends ? friends : undefined,
     });
+  }
+
+  // Show name entry prompt for invite link visitors without a name
+  if (isInviteJoin && !displayName) {
+    return (
+      <ScreenLayout className="items-center justify-center">
+        <div className="w-full max-w-sm flex flex-col items-center gap-6">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold text-white font-heading tracking-tight">
+              Guess Who<span className="text-accent">?</span>
+            </h1>
+            <p className="text-neutral-400 mt-2 text-sm">
+              You've been invited to join a game
+            </p>
+          </div>
+
+          <div className="w-full flex flex-col gap-3">
+            <Input
+              id="invite-name"
+              placeholder="Enter your name"
+              value={inviteName}
+              onChange={(e) => setInviteName(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleInviteJoin(); }}
+              maxLength={20}
+            />
+            <Button onClick={handleInviteJoin} disabled={!inviteName.trim()} className="w-full">
+              Join Game
+            </Button>
+          </div>
+
+          {inviteError && (
+            <p className="text-error text-sm text-center">{inviteError}</p>
+          )}
+        </div>
+      </ScreenLayout>
+    );
   }
 
   return (
