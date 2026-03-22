@@ -12,6 +12,7 @@ interface GameStore {
   myPlayerId: string | null;
   myEliminatedIds: string[];
   displayName: string;
+  revealedCharacters: { playerId: string; characterId: string }[] | null;
 
   // Actions — state updates
   setGameState: (gameState: GameState) => void;
@@ -26,6 +27,7 @@ interface GameStore {
   updatePlayers: (players: Player[]) => void;
   setCurrentTurn: (playerId: string) => void;
   setWinner: (winnerId: string) => void;
+  clearRevealedCharacters: () => void;
   reset: () => void;
 }
 
@@ -35,6 +37,7 @@ const initialState = {
   myPlayerId: null as string | null,
   myEliminatedIds: JSON.parse(sessionStorage.getItem('gw_eliminatedIds') || '[]') as string[],
   displayName: localStorage.getItem('gw_displayName') || '',
+  revealedCharacters: null as { playerId: string; characterId: string }[] | null,
 };
 
 export const useGameStore = create<GameStore>((set, get) => ({
@@ -110,6 +113,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (!state.gameState) return state;
     return { gameState: { ...state.gameState, winnerId } };
   }),
+
+  clearRevealedCharacters: () => set({ revealedCharacters: null }),
 
   reset: () => set({ ...initialState, displayName: get().displayName }),
 }));
@@ -191,7 +196,7 @@ export function subscribeToServerEvents(): () => void {
     useGameStore.getState().updatePlayers(players);
   };
 
-  const onRoundOver = ({ winnerId, players }: {
+  const onRoundOver = ({ winnerId, players, playerCharacters }: {
     winnerId: string;
     players: Player[];
     playerCharacters: { playerId: string; characterId: string }[];
@@ -205,6 +210,7 @@ export function subscribeToServerEvents(): () => void {
         winnerId,
         players,
       },
+      revealedCharacters: playerCharacters,
     });
     playSound(winnerId === store().myPlayerId ? 'victory' : 'defeat');
   };

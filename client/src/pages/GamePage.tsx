@@ -7,6 +7,7 @@ import Badge from '../components/ui/Badge';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import Input from '../components/ui/Input';
 import SnipeModal from '../components/game/SnipeModal';
+import RoundOverModal from '../components/game/RoundOverModal';
 import CharacterCard from '../components/game/CharacterCard';
 import Avatar from '../components/game/Avatar';
 import { useGameStore, subscribeToServerEvents } from '../stores/gameStore';
@@ -17,7 +18,7 @@ import { GamePhase, GameMode } from '@guess-who/shared';
 
 export default function GamePage() {
   const navigate = useNavigate();
-  const { gameState, myPlayerId, myEliminatedIds, eliminateCharacter, restoreCharacter } = useGameStore();
+  const { gameState, myPlayerId, myEliminatedIds, eliminateCharacter, restoreCharacter, revealedCharacters, clearRevealedCharacters } = useGameStore();
 
   const [selectedId, setSelectedId] = useState<string | null>(
     () => sessionStorage.getItem('gw_selectedCharId')
@@ -80,12 +81,20 @@ export default function GamePage() {
     return () => { socket.off('snipe-result', handleSnipeResult); };
   }, []);
 
-  // Navigate to results when game is over
-  useEffect(() => {
-    if (phase === GamePhase.GAME_OVER || phase === GamePhase.ROUND_OVER) {
+  const isRoundOver = phase === GamePhase.ROUND_OVER;
+  const isGameOver = phase === GamePhase.GAME_OVER;
+
+  function handleRoundOverContinue() {
+    if (isGameOver) {
+      clearRevealedCharacters();
       navigate(`/results/${gameState?.roomCode}`);
+    } else {
+      // Next round — server handles transition when player emits next-round
+      clearRevealedCharacters();
+      const socket = getSocket();
+      socket.emit('next-round');
     }
-  }, [phase, gameState?.roomCode, navigate]);
+  }
 
   // If no game state, attempt reconnection before redirecting home
   useEffect(() => {
@@ -278,6 +287,18 @@ export default function GamePage() {
         characters={characters}
         eliminatedIds={myEliminatedIds}
         onConfirm={handleSnipe}
+      />
+
+      {/* Round Over Modal */}
+      <RoundOverModal
+        open={(isRoundOver || isGameOver) && revealedCharacters !== null}
+        winnerId={gameState.winnerId ?? ''}
+        myPlayerId={myPlayerId!}
+        players={gameState.players}
+        characters={characters}
+        revealedCharacters={revealedCharacters ?? []}
+        isGameOver={isGameOver}
+        onContinue={handleRoundOverContinue}
       />
 
       {/* Answer Bubble */}

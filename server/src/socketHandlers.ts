@@ -233,6 +233,20 @@ export function registerHandlers(io: TypedServer, socket: TypedSocket): void {
     }
   });
 
+  socket.on('next-round', () => {
+    const room = getRoomByPlayerId(socket.id);
+    if (!room) return;
+    if (room.phase !== GamePhase.ROUND_OVER) return;
+
+    resetForNewRound(room);
+
+    for (const p of room.players) {
+      io.to(p.id).emit('rematch-started', {
+        gameState: stripSecretForPlayer(room, p.id),
+      });
+    }
+  });
+
   socket.on('request-rematch', () => {
     const room = getRoomByPlayerId(socket.id);
     if (!room) return;
