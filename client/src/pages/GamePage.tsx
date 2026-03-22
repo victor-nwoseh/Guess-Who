@@ -12,6 +12,7 @@ import Avatar from '../components/game/Avatar';
 import { useGameStore, subscribeToServerEvents } from '../stores/gameStore';
 import { getSocket, connect, getStoredSession } from '../services/socket';
 import MuteButton from '../components/ui/MuteButton';
+import { playSound } from '../services/audio';
 import { GamePhase, GameMode } from '@guess-who/shared';
 
 export default function GamePage() {
@@ -114,6 +115,7 @@ export default function GamePage() {
     socket.emit('select-character', { characterId: selectedId });
     sessionStorage.setItem('gw_selectedCharId', selectedId);
     setConfirmed(true);
+    playSound('buttonTap');
   }
 
   if (!gameState) return null;
@@ -185,11 +187,13 @@ export default function GamePage() {
     } else {
       eliminateCharacter(characterId);
     }
+    playSound('cardFlip');
   }
 
   function handleSnipe(characterId: string) {
     const socket = getSocket();
     socket.emit('snipe', { characterId });
+    playSound('snipeAttempt');
   }
 
   return (
@@ -379,11 +383,13 @@ function RemoteActions({
     if (!text) return;
     socket.emit('ask-question', { text });
     setQuestionText('');
+    playSound('buttonTap');
   }
 
   function handleAnswer(answer: 'yes' | 'no') {
     if (!pendingQuestion) return;
     socket.emit('answer-question', { questionId: pendingQuestion.id, answer });
+    playSound('buttonTap');
   }
 
   // Answered questions for history — only show questions I asked
@@ -498,6 +504,7 @@ function InPersonActions({ isMyTurn, opponentName, onSnipe }: InPersonActionsPro
 
   function handleEndTurn() {
     socket.emit('end-turn');
+    playSound('buttonTap');
   }
 
   return isMyTurn ? (

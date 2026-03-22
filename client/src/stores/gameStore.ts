@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { GameState, GamePhase, Question, Player } from '@guess-who/shared';
 import { getSocket, storeSession } from '../services/socket';
+import { playSound } from '../services/audio';
 
 interface GameStore {
   // Server-synced state
@@ -135,6 +136,7 @@ export function subscribeToServerEvents(): () => void {
 
   const onPlayerJoined = ({ gameState }: { player: Player; gameState: GameState }) => {
     set({ gameState });
+    playSound('playerJoined');
   };
 
   const onGameConfigured = ({ gameState }: { gameState: GameState }) => {
@@ -154,16 +156,24 @@ export function subscribeToServerEvents(): () => void {
         currentTurnPlayerId,
       },
     });
+    const isMyTurn = currentTurnPlayerId === store().myPlayerId;
+    playSound(isMyTurn ? 'turnStart' : 'matchFound');
   };
 
   const onTurnStarted = ({ currentTurnPlayerId }: { currentTurnPlayerId: string }) => {
     const gs = store().gameState;
     if (!gs) return;
     set({ gameState: { ...gs, currentTurnPlayerId } });
+    if (currentTurnPlayerId === store().myPlayerId) {
+      playSound('turnStart');
+    }
   };
 
   const onQuestionAsked = ({ question }: { question: Question }) => {
     useGameStore.getState().addQuestion(question);
+    if (question.askerId !== store().myPlayerId) {
+      playSound('questionReceived');
+    }
   };
 
   const onQuestionAnswered = ({ question }: { question: Question }) => {
@@ -196,6 +206,7 @@ export function subscribeToServerEvents(): () => void {
         players,
       },
     });
+    playSound(winnerId === store().myPlayerId ? 'victory' : 'defeat');
   };
 
   const onGameOver = ({ winnerId, players }: { winnerId: string; players: Player[] }) => {

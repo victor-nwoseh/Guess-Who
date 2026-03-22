@@ -8,6 +8,7 @@ import { useGameStore } from '../stores/gameStore';
 import { connect, storeSession } from '../services/socket';
 import { subscribeToServerEvents } from '../stores/gameStore';
 import MuteButton from '../components/ui/MuteButton';
+import { playSound } from '../services/audio';
 import type { GameState } from '@guess-who/shared';
 
 export default function HomePage() {
@@ -45,12 +46,14 @@ export default function HomePage() {
     });
 
     socket.emit('create-room', { displayName: displayName.trim() });
+    playSound('buttonTap');
   }
 
   function handleJoinRoom() {
     if (!canAct || roomCode.trim().length === 0) return;
     setError('');
     const socket = setupSocketAndListeners();
+    playSound('buttonTap');
 
     socket.once('room-joined', ({ gameState }: { gameState: GameState }) => {
       setGameState(gameState);
@@ -79,6 +82,7 @@ export default function HomePage() {
       setMyPlayerId(socket.id!);
       setRoomCode(code);
       storeSession(code, displayName);
+      playSound('matchFound');
       navigate(`/lobby/${code}`);
       socket.off('room-joined', onJoined);
     };
@@ -89,6 +93,7 @@ export default function HomePage() {
       setMyPlayerId(socket.id!);
       setRoomCode(gameState.roomCode);
       storeSession(gameState.roomCode, displayName);
+      playSound('matchFound');
       navigate(`/lobby/${gameState.roomCode}`);
       socket.off('room-created', onMatched);
     };
