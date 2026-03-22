@@ -170,7 +170,7 @@ export default function GamePage() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 overflow-y-auto flex-1">
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 overflow-y-auto flex-1">
                 {characters.map(character => (
                   <CharacterCard
                     key={character.id}
@@ -222,21 +222,21 @@ export default function GamePage() {
       <div className="flex flex-col gap-2 flex-1 min-h-0">
         {/* Top Bar */}
         <div className="flex flex-col gap-1.5 shrink-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1.5">
-                <span className="text-white font-medium text-sm">{me?.displayName}</span>
+          <div className="flex items-center justify-between gap-2 min-w-0">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <div className="flex items-center gap-1 min-w-0">
+                <span className="text-white font-medium text-sm truncate max-w-[5rem]">{me?.displayName}</span>
                 <Badge variant="accent">{me?.wins ?? 0}</Badge>
               </div>
-              <span className="text-neutral-500 text-xs">vs</span>
-              <div className="flex items-center gap-1.5">
-                <span className="text-neutral-300 font-medium text-sm">{opponent?.displayName}</span>
+              <span className="text-neutral-500 text-xs shrink-0">vs</span>
+              <div className="flex items-center gap-1 min-w-0">
+                <span className="text-neutral-300 font-medium text-sm truncate max-w-[5rem]">{opponent?.displayName}</span>
                 <Badge variant="default">{opponent?.wins ?? 0}</Badge>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
               <Badge variant={isMyTurn ? 'accent' : 'default'} className={isMyTurn ? 'animate-pulse' : ''}>
-                {isMyTurn ? 'Your Turn' : "Opponent's Turn"}
+                {isMyTurn ? 'Your Turn' : "Opponent's"}
               </Badge>
               <MuteButton />
             </div>
@@ -255,7 +255,7 @@ export default function GamePage() {
         </div>
 
         {/* Character Grid */}
-        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 overflow-y-auto flex-1 min-h-0 content-start">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 overflow-y-auto flex-1 min-h-0 content-start">
           {characters.map(character => (
             <CharacterCard
               key={character.id}
@@ -457,7 +457,7 @@ function RemoteActions({
         <div>
           <button
             onClick={() => setShowHistory(!showHistory)}
-            className="text-neutral-400 text-xs flex items-center gap-1 cursor-pointer hover:text-neutral-300 transition-colors"
+            className="text-neutral-400 text-xs flex items-center gap-1 cursor-pointer hover:text-neutral-300 transition-colors min-h-[44px]"
           >
             <span className={`transition-transform ${showHistory ? 'rotate-90' : ''}`}>&#9654;</span>
             Question history ({answeredQuestions.length})

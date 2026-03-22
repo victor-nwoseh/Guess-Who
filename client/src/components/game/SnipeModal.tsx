@@ -79,7 +79,7 @@ export default function SnipeModal({
           <p className="text-neutral-400 text-sm">
             Tap a character to guess. Non-eliminated characters are highlighted.
           </p>
-          <div className="grid grid-cols-3 gap-2 max-h-[50vh] overflow-y-auto">
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-[50vh] overflow-y-auto">
             {characters.map(character => (
               <div key={character.id} className={eliminatedIds.includes(character.id) ? 'opacity-40' : ''}>
                 <CharacterCard
