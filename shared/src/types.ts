@@ -43,6 +43,7 @@ export interface Player {
   selectedCharacterId: string | null;
   eliminatedIds: string[];
   wins: number;
+  seriesWins: number;
 }
 
 export interface Question {
