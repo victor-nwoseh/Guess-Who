@@ -4,6 +4,7 @@ import ScreenLayout from '../components/ui/ScreenLayout';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
+import Modal from '../components/ui/Modal';
 import { useGameStore } from '../stores/gameStore';
 import { connect, storeSession } from '../services/socket';
 import { subscribeToServerEvents } from '../stores/gameStore';
@@ -19,6 +20,7 @@ export default function HomePage() {
   const [roomCode, setRoomCodeInput] = useState('');
   const [isMatchmaking, setIsMatchmaking] = useState(false);
   const [error, setError] = useState('');
+  const [showHowToPlay, setShowHowToPlay] = useState(false);
 
   const canAct = displayName.trim().length > 0;
 
@@ -179,7 +181,71 @@ export default function HomePage() {
             </Button>
           </div>
         )}
+
+        <button
+          onClick={() => setShowHowToPlay(true)}
+          className="text-neutral-400 text-sm underline underline-offset-2 hover:text-neutral-300 transition-colors cursor-pointer mt-2"
+        >
+          How to Play
+        </button>
       </div>
+
+      <Modal open={showHowToPlay} onClose={() => setShowHowToPlay(false)}>
+        <div className="flex flex-col gap-5">
+          <h2 className="text-xl font-bold text-white font-heading text-center">How to Play</h2>
+
+          <div className="flex flex-col gap-4">
+            <HowToPlayStep
+              number={1}
+              title="Set Up"
+              description="Create a room or join one with a code. Pick a category and board size, then start the game."
+            />
+            <HowToPlayStep
+              number={2}
+              title="Pick Your Character"
+              description="Both players secretly choose a character from the board. This is who your opponent will try to guess."
+            />
+            <HowToPlayStep
+              number={3}
+              title="Take Turns"
+              description="On your turn, ask a yes/no question to narrow down who your opponent picked. Use their answer to eliminate characters on your board."
+            />
+            <HowToPlayStep
+              number={4}
+              title="Snipe to Win"
+              description="When you think you know who it is, go for the snipe — guess their character. Get it right and you win. Get it wrong and you lose your turn."
+            />
+          </div>
+
+          <div className="bg-white/5 rounded-xl p-3 flex flex-col gap-2">
+            <p className="text-neutral-300 text-xs font-medium">Quick Tips</p>
+            <ul className="text-neutral-400 text-xs flex flex-col gap-1.5">
+              <li>Tap a character to eliminate them. Tap again to bring them back.</li>
+              <li>Your eliminations are private — your opponent can't see them.</li>
+              <li>In-Person mode lets you ask questions out loud instead of typing.</li>
+              <li>Best-of-3 is available for longer sessions.</li>
+            </ul>
+          </div>
+
+          <Button variant="secondary" onClick={() => setShowHowToPlay(false)} className="w-full">
+            Got it
+          </Button>
+        </div>
+      </Modal>
     </ScreenLayout>
+  );
+}
+
+function HowToPlayStep({ number, title, description }: { number: number; title: string; description: string }) {
+  return (
+    <div className="flex gap-3">
+      <div className="w-7 h-7 rounded-full bg-accent/20 flex items-center justify-center shrink-0 mt-0.5">
+        <span className="text-accent text-sm font-bold">{number}</span>
+      </div>
+      <div>
+        <p className="text-white text-sm font-medium">{title}</p>
+        <p className="text-neutral-400 text-xs mt-0.5">{description}</p>
+      </div>
+    </div>
   );
 }
