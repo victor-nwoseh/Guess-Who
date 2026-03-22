@@ -116,7 +116,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   clearRevealedCharacters: () => set({ revealedCharacters: null }),
 
-  reset: () => set({ ...initialState, displayName: get().displayName }),
+  reset: () => set({
+    roomCode: null,
+    gameState: null,
+    myPlayerId: null,
+    myEliminatedIds: [],
+    revealedCharacters: null,
+    displayName: get().displayName,
+  }),
 }));
 
 // Subscribe to server events

@@ -8,7 +8,7 @@ import Badge from '../components/ui/Badge';
 import Modal from '../components/ui/Modal';
 import MuteButton from '../components/ui/MuteButton';
 import { useGameStore } from '../stores/gameStore';
-import { getSocket } from '../services/socket';
+import { getSocket, disconnect, clearSession } from '../services/socket';
 import { playSound } from '../services/audio';
 
 type RematchState = 'idle' | 'requesting' | 'received' | 'declined';
@@ -24,11 +24,7 @@ export default function ResultsPage() {
   const winnerId = gameState?.winnerId;
   const iWon = winnerId === myPlayerId;
   const winner = players.find(p => p.id === winnerId);
-  const questions = gameState?.questions ?? [];
   const roundNumber = gameState?.roundNumber ?? 1;
-
-  // Non-snipe questions count
-  const questionsAsked = questions.filter(q => !q.isSnipe).length;
 
   // Fire confetti for the winner
   useEffect(() => {
@@ -105,13 +101,13 @@ export default function ResultsPage() {
     playSound('buttonTap');
   }, []);
 
-  const handleNewGame = useCallback(() => {
-    playSound('buttonTap');
-    navigate(`/lobby/${gameState?.roomCode}`);
-  }, [navigate, gameState?.roomCode]);
-
   const handleHome = useCallback(() => {
     playSound('buttonTap');
+    disconnect();
+    clearSession();
+    sessionStorage.removeItem('gw_eliminatedIds');
+    sessionStorage.removeItem('gw_selectedCharId');
+    sessionStorage.removeItem('gw_questions');
     reset();
     navigate('/');
   }, [navigate, reset]);
@@ -182,15 +178,11 @@ export default function ResultsPage() {
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.35 }}
-          className="w-full bg-white/5 rounded-xl p-4 flex justify-around"
+          className="w-full bg-white/5 rounded-xl p-4 flex justify-center"
         >
           <div className="text-center">
             <p className="text-white text-lg font-bold">{roundNumber}</p>
             <p className="text-neutral-400 text-xs">Rounds Played</p>
-          </div>
-          <div className="text-center">
-            <p className="text-white text-lg font-bold">{questionsAsked}</p>
-            <p className="text-neutral-400 text-xs">Questions Asked</p>
           </div>
         </motion.div>
 
@@ -214,10 +206,7 @@ export default function ResultsPage() {
               Rematch
             </Button>
           )}
-          <Button variant="secondary" onClick={handleNewGame} className="w-full">
-            New Game
-          </Button>
-          <Button variant="ghost" onClick={handleHome} className="w-full">
+          <Button variant="secondary" onClick={handleHome} className="w-full">
             Home
           </Button>
         </motion.div>
