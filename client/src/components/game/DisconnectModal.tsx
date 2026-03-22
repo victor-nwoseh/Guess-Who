@@ -56,7 +56,7 @@ export default function DisconnectModal() {
   }, [navigate, reset]);
 
   return (
-    <Modal open={opponentDisconnected} onClose={() => {}}>
+    <Modal open={opponentDisconnected} onClose={() => {}} ariaLabel="Opponent disconnected">
       <div className="flex flex-col items-center gap-4">
         <p className="text-white text-lg font-bold font-heading">
           Opponent Disconnected

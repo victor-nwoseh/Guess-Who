@@ -64,6 +64,8 @@ export default function CharacterCard({
       onPointerUp={handlePointerUp}
       onPointerLeave={handlePointerLeave}
       whileTap={{ scale: 0.95 }}
+      aria-label={`${character.name}${isEliminated ? ' (eliminated)' : ''}${isSelected ? ' (selected)' : ''}`}
+      aria-pressed={isSelected || undefined}
       className={`relative flex flex-col items-center gap-1 p-2 rounded-xl cursor-pointer transition-all select-none
         ${isSelected
           ? 'bg-accent/20 border-2 border-accent ring-2 ring-accent/50'

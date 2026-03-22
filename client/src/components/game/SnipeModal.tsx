@@ -48,7 +48,7 @@ export default function SnipeModal({
   }
 
   return (
-    <Modal open={open} onClose={handleClose}>
+    <Modal open={open} onClose={handleClose} ariaLabel="Guess opponent's character">
       {confirming && selectedCharacter ? (
         <div className="flex flex-col items-center gap-4">
           <h2 className="text-lg font-bold text-white font-heading">Confirm Guess</h2>
