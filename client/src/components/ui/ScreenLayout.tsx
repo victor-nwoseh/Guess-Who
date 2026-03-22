@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { motion } from 'framer-motion';
 
 interface ScreenLayoutProps {
   children: ReactNode;
@@ -7,11 +8,14 @@ interface ScreenLayoutProps {
 
 export default function ScreenLayout({ children, className = '' }: ScreenLayoutProps) {
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.2 }}
       className={`min-h-[100dvh] w-full bg-primary flex flex-col relative
         px-4 py-6 safe-area-inset ${className}`}
     >
       {children}
-    </div>
+    </motion.div>
   );
 }
