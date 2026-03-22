@@ -12,7 +12,7 @@ export default function Toggle({ options, value, onChange, className = '' }: Tog
         <button
           key={option}
           onClick={() => onChange(option)}
-          className={`min-h-[40px] px-4 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer
+          className={`min-h-[44px] px-4 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer
             ${value === option
               ? 'bg-accent text-primary-dark shadow-sm'
               : 'text-neutral-300 hover:text-white'

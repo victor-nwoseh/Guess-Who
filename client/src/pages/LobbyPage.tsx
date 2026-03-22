@@ -192,7 +192,7 @@ export default function LobbyPage() {
       <div className="absolute top-4 right-4">
         <MuteButton />
       </div>
-      <div className="flex flex-col gap-6 w-full max-w-md mx-auto flex-1">
+      <div className="flex flex-col gap-6 w-full max-w-md mx-auto flex-1 overflow-y-auto min-h-0">
         {/* Room Code Header */}
         <div className="text-center">
           <p className="text-neutral-400 text-sm mb-1">Room Code</p>
@@ -275,7 +275,7 @@ export default function LobbyPage() {
                   <button
                     key={cat}
                     onClick={() => setCategory(cat)}
-                    className={`p-3 rounded-xl text-left text-sm transition-all cursor-pointer
+                    className={`min-h-[44px] p-3 rounded-xl text-left text-sm transition-all cursor-pointer
                       ${category === cat
                         ? 'bg-accent/20 border-2 border-accent text-white'
                         : 'bg-white/5 border-2 border-transparent text-neutral-300 hover:bg-white/10'
