@@ -5,20 +5,22 @@
   "scripts": {
     "dev": "nodemon --exec ts-node src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "test": "vitest run"
   },
   "dependencies": {
-    "express": "^4.21.0",
-    "socket.io": "^4.8.0",
+    "@guess-who/shared": "*",
     "cors": "^2.8.5",
-    "@guess-who/shared": "*"
+    "express": "^4.21.0",
+    "socket.io": "^4.8.0"
   },
   "devDependencies": {
-    "typescript": "^5.6.0",
-    "@types/node": "^22.0.0",
-    "@types/express": "^5.0.0",
     "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.0.0",
+    "nodemon": "^3.1.0",
     "ts-node": "^10.9.0",
-    "nodemon": "^3.1.0"
+    "typescript": "^5.6.0",
+    "vitest": "^4.1.0"
   }
 }
