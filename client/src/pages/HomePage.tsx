@@ -10,6 +10,7 @@ import { connect, storeSession } from '../services/socket';
 import { subscribeToServerEvents } from '../stores/gameStore';
 import MuteButton from '../components/ui/MuteButton';
 import { playSound } from '../services/audio';
+import { trackEvent } from '../services/analytics';
 import type { GameState } from '@guess-who/shared';
 
 interface BeforeInstallPromptEvent extends Event {
@@ -38,7 +39,10 @@ function useInstallPrompt() {
     if (!deferredPrompt.current) return;
     await deferredPrompt.current.prompt();
     const { outcome } = await deferredPrompt.current.userChoice;
-    if (outcome === 'accepted') setCanInstall(false);
+    if (outcome === 'accepted') {
+      setCanInstall(false);
+      trackEvent('pwa_install');
+    }
     deferredPrompt.current = null;
   }
 
@@ -85,6 +89,7 @@ export default function HomePage() {
     });
 
     socket.emit('create-room', { displayName: displayName.trim() });
+    trackEvent('create_room');
     playSound('buttonTap');
   }
 
@@ -112,6 +117,7 @@ export default function HomePage() {
     });
 
     socket.emit('join-room', { roomCode: roomCode.trim().toUpperCase(), displayName: displayName.trim() });
+    trackEvent('join_room');
   }
 
   function handleQuickMatch() {
@@ -151,6 +157,7 @@ export default function HomePage() {
     });
 
     socket.emit('join-matchmaking', { displayName: displayName.trim() });
+    trackEvent('quick_match');
   }
 
   return (

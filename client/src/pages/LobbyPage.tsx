@@ -12,6 +12,7 @@ import type { Character } from '@guess-who/shared';
 import Input from '../components/ui/Input';
 import MuteButton from '../components/ui/MuteButton';
 import DisconnectModal from '../components/game/DisconnectModal';
+import { trackEvent } from '../services/analytics';
 
 const CATEGORY_LABELS: Record<Category, string> = {
   [Category.MUTUAL_FRIENDS]: 'Mutual Friends',
@@ -149,6 +150,7 @@ export default function LobbyPage() {
       bestOf,
       customCharacters: isMutualFriends ? friends : undefined,
     });
+    trackEvent('game_started', { mode, category, board_size: isMutualFriends ? friends.length : boardSize, best_of: bestOf });
   }
 
   // Show name entry prompt for invite link visitors without a name

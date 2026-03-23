@@ -15,6 +15,7 @@ import { useGameStore, subscribeToServerEvents } from '../stores/gameStore';
 import { getSocket, connect, getStoredSession } from '../services/socket';
 import MuteButton from '../components/ui/MuteButton';
 import { playSound } from '../services/audio';
+import { trackEvent } from '../services/analytics';
 import { GamePhase, GameMode } from '@guess-who/shared';
 
 export default function GamePage() {
@@ -136,6 +137,7 @@ export default function GamePage() {
     socket.emit('select-character', { characterId: selectedId });
     sessionStorage.setItem('gw_selectedCharId', selectedId);
     setConfirmed(true);
+    trackEvent('select_character');
     playSound('buttonTap');
   }
 
@@ -214,6 +216,7 @@ export default function GamePage() {
   function handleSnipe(characterId: string) {
     const socket = getSocket();
     socket.emit('snipe', { characterId });
+    trackEvent('snipe_attempt');
     playSound('snipeAttempt');
   }
 

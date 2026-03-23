@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import LobbyPage from './pages/LobbyPage';
 import GamePage from './pages/GamePage';
@@ -7,6 +7,15 @@ import ResultsPage from './pages/ResultsPage';
 import Sandbox from './pages/Sandbox';
 import ToastContainer from './components/ui/ToastContainer';
 import { useToastStore } from './stores/toastStore';
+import { trackPageView } from './services/analytics';
+
+function PageViewTracker() {
+  const location = useLocation();
+  useEffect(() => {
+    trackPageView(location.pathname);
+  }, [location.pathname]);
+  return null;
+}
 
 function App() {
   useEffect(() => {
@@ -22,6 +31,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      <PageViewTracker />
       <ToastContainer />
       <Routes>
         <Route path="/" element={<HomePage />} />
