@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import ScreenLayout from '../components/ui/ScreenLayout';
@@ -562,27 +562,64 @@ interface InPersonActionsProps {
 
 function InPersonActions({ isMyTurn, opponentName, onSnipe }: InPersonActionsProps) {
   const socket = getSocket();
+  const [turnAction, setTurnAction] = useState<'question' | 'snipe' | null>(null);
+
+  // Reset choice when turn changes
+  const prevIsMyTurn = useRef(isMyTurn);
+  useEffect(() => {
+    if (isMyTurn && !prevIsMyTurn.current) {
+      setTurnAction(null);
+    }
+    prevIsMyTurn.current = isMyTurn;
+  }, [isMyTurn]);
 
   function handleEndTurn() {
     socket.emit('end-turn');
     playSound('buttonTap');
   }
 
-  return isMyTurn ? (
-    <div className="flex flex-col gap-2">
-      <p className="text-white text-sm text-center font-medium py-1">
-        Ask your question out loud!
+  if (!isMyTurn) {
+    return (
+      <p className="text-neutral-400 text-sm text-center py-2">
+        Waiting for {opponentName}...
       </p>
-      <Button onClick={handleEndTurn} className="w-full">
-        End Turn
-      </Button>
+    );
+  }
+
+  // Choice gate — player hasn't picked an action yet
+  if (turnAction === null) {
+    return (
+      <div className="flex gap-2">
+        <Button onClick={() => setTurnAction('question')} className="flex-1">
+          Ask Question
+        </Button>
+        <Button variant="secondary" onClick={() => { setTurnAction('snipe'); onSnipe(); }} className="flex-1">
+          Snipe
+        </Button>
+      </div>
+    );
+  }
+
+  // Player chose to ask a question
+  if (turnAction === 'question') {
+    return (
+      <div className="flex flex-col gap-2">
+        <p className="text-white text-sm text-center font-medium py-1">
+          Ask your question out loud!
+        </p>
+        <Button onClick={handleEndTurn} className="w-full">
+          End Turn
+        </Button>
+      </div>
+    );
+  }
+
+  // Player chose to snipe — modal is open, show option to go back
+  return (
+    <div className="flex flex-col gap-2">
       <Button variant="secondary" onClick={onSnipe} className="w-full">
         Guess (Snipe)
       </Button>
     </div>
-  ) : (
-    <p className="text-neutral-400 text-sm text-center py-2">
-      Waiting for {opponentName}...
-    </p>
   );
 }
